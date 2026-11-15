@@ -39,8 +39,11 @@
   .empty{background:var(--card); border:2px dashed var(--line); border-radius:22px; padding:26px 18px; text-align:center; color:var(--muted); line-height:1.45}
   .empty .big{font-size:48px}
   .add{
-    margin-top:18px; width:100%; border:2px dashed #bcaedb; background:rgba(255,255,255,.7); border-radius:20px; padding:16px; font-weight:800; font-size:18px; color:var(--ink);
+    flex:1 1 0; min-width:0; border:2px dashed #bcaedb; background:rgba(255,255,255,.7); border-radius:20px; padding:16px; font-weight:800; font-size:16px; line-height:1.2; color:var(--ink);
   }
+  .toprow{display:flex; gap:10px; margin:0 0 16px}
+  .add.def{border-style:solid; border-color:var(--ink); background:var(--ink); color:#fff}
+  .add:active{transform:scale(.97)}
   .note{margin-top:22px; color:var(--muted); font-size:13px; line-height:1.45}
 
   /* ---------- form ---------- */
@@ -94,9 +97,12 @@
   <!-- ===================== list of children ===================== -->
   <section id="listView">
     <h1><span class="globe">🌍</span>World Explorer</h1>
-    <p class="sub">One little explorer page for each child. Tap Play to start, or add another child.</p>
+    <p class="sub">Customize the page for your child, then press Launch. Or, use the default</p>
+    <div class="toprow">
+      <button class="add" id="addBtn" type="button">＋ Add a child</button>
+      <button class="add def" id="defBtn" type="button">▶ Launch with defaults</button>
+    </div>
     <div class="cards" id="cards"></div>
-    <button class="add" id="addBtn" type="button">＋ Add a child</button>
     <p class="note">Profiles are saved in this browser on this device only. Nothing is sent anywhere.</p>
   </section>
 
@@ -192,8 +198,8 @@ function renderList() {
       return '<div class="pcard" style="--c:' + t.c + ';--soft:' + t.soft + '">' +
         '<div class="badge">' + t.logo + '</div>' +
         '<div class="pinfo"><div class="pname">' + esc(possessive(p.name)) + '</div>' +
-        '<div class="pmeta">' + t.label + ' · ' + p.chosen.length + ' picked' + (p.fill.length ? ' + ' + p.fill.length + ' random' : '') + '</div></div>' +
-        '<div class="actions"><a class="play" href="' + esc(playUrl(p)) + '" style="text-decoration:none">▶ Play</a>' +
+        '<div class="pmeta">' + 'Theme: ' + t.label + '</div></div>' +
+        '<div class="actions"><a class="play" href="' + esc(playUrl(p)) + '" style="text-decoration:none">▶ Launch</a>' +
         '<div class="row2"><button class="iconbtn" data-edit="' + p.id + '" aria-label="Edit">✏️</button>' +
         '<button class="iconbtn" data-del="' + p.id + '" aria-label="Delete">🗑️</button></div></div></div>';
     }).join('');
@@ -209,6 +215,10 @@ $('#cards').addEventListener('click', e => {
   }
 });
 $('#addBtn').addEventListener('click', () => openForm(null));
+$('#defBtn').addEventListener('click', () => {            // the default explorer: Gaia, animals, 25 random countries
+  const all = COUNTRIES.map(c => c[0]);
+  location.href = playUrl({ name:'Gaia', theme:'animals', chosen:[], fill:shuffle(all).slice(0, MAX_FAV) });
+});
 
 /* ---- form ---- */
 const F = { id:null, name:'', theme:'unicorn', chosen:[], oldFill:[] };
