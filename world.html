@@ -1,0 +1,1818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explorer World</title>
+<style>
+  :root{
+    --pink:#ff5fa8; --pink-d:#d63384; --pink-soft:#ffe6f1; --lilac:#efe6ff;
+    --ink:#4b2a63; --muted:#8a6f9e; --card:#ffffff; --line:#f4cfe3; --space:#1a1036;
+    --line2:#ffc2df; --light:#ff8fc7; --g1:#ff7ab8; --g2:#ff4f9a; --mic1:#9b5de5; --bg1:#fff2f8; --bg2:#f0e8ff; --dotoff:#d9c8f0; --bt:#ff5fa8; --rgb:255,79,154;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",Nunito,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink); background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+    display:flex; flex-direction:column; height:100vh; -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit; cursor:pointer}
+
+  /* ---------- top bar ---------- */
+  header.top{display:flex; align-items:center; gap:14px; padding:12px 18px 6px; flex-wrap:wrap}
+  .bigbtn{
+    border:none; border-radius:40px; height:64px; padding:0 24px; font-size:20px; font-weight:800; color:#fff;
+    background:linear-gradient(135deg,var(--g1),var(--g2)); box-shadow:0 6px 16px rgba(var(--rgb),.35);
+    display:inline-flex; align-items:center; gap:10px; transition:transform .12s;
+  }
+  .bigbtn[hidden]{display:none}
+  .bigbtn:active{transform:scale(.94)}
+  .bigbtn .e{font-size:28px; line-height:1}
+  .bigbtn.mic{width:64px; padding:0; justify-content:center; background:linear-gradient(135deg,var(--mic1),var(--g2))}
+  .bigbtn.mic svg{width:30px; height:30px; stroke:#fff; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+  .bigbtn.mic.on{animation:pulse 1.1s infinite}
+  .bigbtn.mic.shake{animation:shake .4s}
+  .row1{display:flex; align-items:center; justify-content:space-between; gap:8px; flex:1 1 100%; width:100%}
+  .brand{display:flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap; min-width:0; flex:1 1 0; overflow:hidden}
+  .brand .bu{font-size:46px; line-height:1}
+  .brand .bt{font-size:25px; font-weight:800; line-height:1.05; color:var(--bt)}
+  .homebtn{width:60px; height:60px; border-radius:50%; background:#fff; border:3px solid var(--line2); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(var(--rgb),.22); flex:0 0 auto}
+  .homebtn svg{width:30px; height:30px; stroke:var(--pink); fill:none; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+  .homebtn:active{transform:scale(.94)}
+  .northbtn{position:absolute; top:12px; right:12px; width:48px; height:48px; border-radius:50%; border:2px solid rgba(255,255,255,.55);
+    background:rgba(40,20,80,.55); color:#fff; display:flex; align-items:center; justify-content:center; padding:0; z-index:6; cursor:pointer}
+  .northbtn svg{width:30px; height:30px}
+  .northbtn:active{transform:scale(.92)}
+  .flagbtn{
+    width:84px; height:60px; border-radius:12px; border:3px dashed var(--light); background:#fff; padding:0; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(var(--rgb),.3); animation:wiggle 3.2s ease-in-out infinite; transition:transform .12s;
+  }
+  .flagbtn:active{transform:scale(.94)}
+  .flagbtn svg{width:46px; height:46px; display:block; transition:transform 1s cubic-bezier(.15,.7,.2,1)}
+  .flagbtn .wptr{position:absolute; top:-3px; left:50%; margin-left:-6px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:11px solid var(--pink-d); filter:drop-shadow(0 1px 0 #fff)}
+  .flagbtn.spinning{animation:none}
+  @keyframes wiggle{0%,86%,100%{transform:rotate(0)} 90%{transform:rotate(-5deg)} 94%{transform:rotate(5deg)} 98%{transform:rotate(-3deg)}}
+  .bigbtn.speak{width:64px; padding:0; justify-content:center; font-size:28px; margin-left:auto; flex:0 0 auto}
+  .bigbtn.speak.talking{animation:pulse 1.1s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--rgb),.55)} 100%{box-shadow:0 0 0 18px rgba(var(--rgb),0)}}
+  @keyframes shake{0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)}}
+
+  .search{position:relative; margin-left:auto; width:min(280px,100%)}
+  .search input{
+    width:100%; padding:10px 14px; font:inherit; font-size:15px; color:var(--ink);
+    border:2px solid var(--line); border-radius:14px; background:#fff; outline:none;
+  }
+  .search input:focus{border-color:var(--pink)}
+  .list{
+    position:absolute; top:calc(100% + 6px); right:0; left:0; max-height:340px; overflow:auto; z-index:30;
+    background:#fff; border:2px solid var(--line); border-radius:14px; padding:6px; display:none;
+    box-shadow:0 14px 34px rgba(75,42,99,.18);
+  }
+  .list.open{display:block}
+  .opt{display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:10px; cursor:pointer}
+  .opt.active,.opt:hover{background:var(--pink-soft)}
+  .oflag{width:30px; height:20px; object-fit:contain; border-radius:3px; box-shadow:0 0 0 1px var(--line)}
+  .none{padding:10px 12px; color:var(--muted)}
+
+  /* ---------- flag shelf ---------- */
+  .shelf-wrap{position:relative; padding:0 10px}
+  .shelf{
+    position:relative; display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x proximity;
+    padding:8px 46px 12px; scrollbar-width:thin; scrollbar-color:var(--line2) transparent;
+  }
+  .tile{
+    flex:0 0 auto; scroll-snap-align:center; border:3px solid transparent; background:#fff; border-radius:16px; padding:6px;
+    box-shadow:0 3px 10px rgba(var(--rgb),.18); transition:transform .12s, border-color .12s;
+  }
+  .tile img{display:block; width:84px; height:56px; object-fit:contain; border-radius:6px}
+  .tile:active{transform:scale(.94)}
+  .tile{opacity:.62; transition:transform .12s, border-color .12s, opacity .2s, translate .5s cubic-bezier(.2,.8,.2,1)}
+  .tile:active{opacity:1}
+  .tile.on{border-color:var(--pink); transform:translateY(-3px); opacity:1}
+  .tile.fresh{animation:tilein .45s ease-out}
+  @keyframes tilein{from{opacity:0; transform:scale(.5)} to{opacity:.62; transform:scale(1)}}
+  .shelf-arrow{
+    position:absolute; top:calc(50% - 4px); transform:translateY(-50%); z-index:3; width:40px; height:40px; border-radius:50%;
+    border:none; background:#fff; color:var(--pink-d); font-size:24px; line-height:1; box-shadow:0 3px 10px rgba(var(--rgb),.3);
+  }
+  .shelf-arrow.l{left:8px} .shelf-arrow.r{right:8px}
+
+  /* ---------- main ---------- */
+  main{
+    flex:1; min-height:0; display:grid; gap:16px; padding:8px 16px 16px;
+    grid-template-columns:minmax(0,1.1fr) minmax(380px,.9fr);
+  }
+  .card{background:var(--card); border:2px solid var(--line); border-radius:22px}
+  .globe-card{aspect-ratio:1/1; width:100%; max-height:100%; align-self:center; position:relative; overflow:hidden; background:var(--space); min-height:0; border-color:var(--space)}
+  #globe{position:absolute; inset:0; width:100%; height:100%; display:block}
+  .globe-note{position:absolute; left:14px; bottom:10px; color:rgba(255,255,255,.5); font-size:11.5px; pointer-events:none}
+  .overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center;
+    color:#e8dcff; background:var(--space); z-index:5; text-align:center; padding:20px; transition:opacity .4s; font-size:18px;
+  }
+  .overlay.hide{opacity:0; pointer-events:none}
+  .spinner{width:34px; height:34px; border-radius:50%; border:4px solid rgba(255,255,255,.2); border-top-color:var(--light); animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .listen{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:6; background:#fff; color:var(--ink);
+    border-radius:999px; padding:9px 18px; display:flex; gap:12px; align-items:center; font-weight:800;
+  }
+  .listen[hidden]{display:none}
+  .bars{display:flex; gap:4px; align-items:center; height:22px}
+  .bars i{width:5px; height:8px; border-radius:3px; background:var(--pink); animation:bar .7s ease-in-out infinite alternate}
+  .bars i:nth-child(2){animation-delay:.15s} .bars i:nth-child(3){animation-delay:.3s} .bars i:nth-child(4){animation-delay:.45s}
+  @keyframes bar{from{height:6px} to{height:22px}}
+
+  /* unicorn */
+  .plane{
+    position:absolute; left:50%; top:50%; width:84px; height:84px; margin:-42px 0 0 -42px; pointer-events:none;
+    opacity:0; transform:scale(.4); z-index:4; transition:opacity .25s ease, transform .25s ease;
+    filter:drop-shadow(0 6px 10px rgba(var(--rgb),.6));
+  }
+  .plane.show{opacity:1; transform:scale(1)}
+  .plane .rot{position:relative; width:100%; height:100%}
+  .uni{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:64px; line-height:1; animation:bob .7s ease-in-out infinite alternate}
+  @keyframes bob{from{transform:translateY(-5px) rotate(-4deg)} to{transform:translateY(5px) rotate(4deg)}}
+  .sp{position:absolute; font-size:20px; animation:twinkle 1s ease-in-out infinite alternate}
+  .sp.s1{left:-8px; top:4px} .sp.s2{right:-6px; top:-8px; animation-delay:.3s} .sp.s3{left:6px; bottom:-8px; animation-delay:.6s}
+  @keyframes twinkle{from{opacity:.3; transform:scale(.7)} to{opacity:1; transform:scale(1.15)}}
+  .bp{position:absolute; left:50%; top:50%; font-size:28px; pointer-events:none; z-index:6; animation:bp 1.2s ease-out forwards}
+  @keyframes bp{0%{transform:translate(-50%,-50%) scale(.3); opacity:1} 100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.2); opacity:0}}
+
+  /* ---------- country card ---------- */
+  .side{display:flex; flex-direction:column; gap:16px; min-height:0; min-width:0}
+  .info{padding:16px 20px; flex:0 0 auto}
+  .empty{display:flex; align-items:center; gap:16px; color:var(--muted); font-size:16px}
+  .empty .bigemoji{font-size:54px; animation:bob 1s ease-in-out infinite alternate}
+  .kc-head{display:flex; align-items:center; gap:18px}
+  .kc-namerow{display:flex; align-items:center; gap:10px; min-width:0}
+  .kc-flag-sm{height:30px; width:auto; flex:0 0 auto; border-radius:5px; box-shadow:0 0 0 1.5px var(--line); background:#fff}
+  .kc-name{font-size:30px; font-weight:800; line-height:1.15; white-space:nowrap; display:block; flex:1 1 auto; min-width:0; overflow-x:auto; scrollbar-width:none; border:none; background:none; color:var(--ink); text-align:left; padding:0}
+  .size{display:flex; align-items:center; gap:10px; margin-top:8px; border:none; background:var(--lilac); border-radius:999px; padding:6px 14px 6px 12px; color:var(--ink); font-size:16px}
+  .dots{display:flex; align-items:flex-end; gap:4px}
+  .dots i{display:block; border-radius:50%; background:var(--dotoff)}
+  .dots i:nth-child(1){width:9px; height:9px} .dots i:nth-child(2){width:13px; height:13px}
+  .dots i:nth-child(3){width:18px; height:18px} .dots i:nth-child(4){width:24px; height:24px}
+  .dots i.on{background:var(--pink)}
+  .kc-actions{margin-top:14px}
+  .fact{margin-top:12px; font-size:22px; line-height:1.38; background:var(--pink-soft); border-radius:18px; padding:14px 18px}
+  .fact[hidden]{display:none}
+
+  .kc-mid{min-width:0; flex:1 1 auto}
+  .kc-name::-webkit-scrollbar{display:none}
+  .facts{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; margin-top:14px; padding-bottom:4px; scrollbar-width:none}
+  .facts::-webkit-scrollbar{display:none}
+  .factcard{
+    flex:0 0 84%; scroll-snap-align:start; background:var(--pink-soft); border-radius:14px; padding:10px 14px;
+    font-size:19px; line-height:1.34; min-height:84px; display:flex; align-items:center; position:relative; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; box-shadow:inset 0 0 0 0 var(--pink);
+  }
+  .factcard.talking{animation:glow 1s ease-in-out infinite alternate}
+  .factcard.hint{animation:hintpulse 1.3s ease-in-out infinite}
+  .factcard.hint::after{content:'👆'; position:absolute; right:10px; bottom:4px; font-size:20px; animation:tapbob .65s ease-in-out infinite alternate}
+  @keyframes glow{from{box-shadow:inset 0 0 0 2px rgba(var(--rgb),.5)} to{box-shadow:inset 0 0 0 3px var(--pink)}}
+  @keyframes hintpulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(var(--rgb),0)} 50%{box-shadow:inset 0 0 0 3px rgba(var(--rgb),.7)}}
+  @keyframes tapbob{from{transform:translateY(0)} to{transform:translateY(-4px)}}
+  .fdots{display:flex; justify-content:center; gap:7px; margin-top:8px}
+  .fdots i{width:9px; height:9px; border-radius:50%; background:var(--line)}
+  .fdots i.on{background:var(--pink)}
+
+  /* ---------- pictures ---------- */
+  .gallery{flex:1; min-height:0; display:flex; flex-direction:column; padding:14px; gap:10px}
+  .viewer{position:relative; flex:1; min-height:180px; border-radius:16px; overflow:hidden; background:#f6eefb}
+  .viewer img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block}
+  .viewer .msg{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--muted); text-align:center; padding:20px; font-size:17px}
+  .nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:54px; height:54px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.94); color:var(--pink-d); font-size:32px; line-height:1; box-shadow:0 3px 10px rgba(0,0,0,.25);
+  }
+  .nav.prev{left:10px} .nav.next{right:10px}
+  .count{position:absolute; right:10px; top:10px; background:rgba(75,42,99,.75); color:#fff; font-size:13px; padding:3px 10px; border-radius:999px}
+  .vbtn{
+    position:absolute; bottom:10px; width:46px; height:46px; border-radius:50%; border:none; font-size:22px; line-height:1;
+    background:rgba(255,255,255,.94); box-shadow:0 3px 10px rgba(0,0,0,.25);
+  }
+  .vbtn[hidden], .nav[hidden], .count[hidden]{display:none}
+  .vbtn.say{left:10px} .vbtn.play{right:10px}
+  .cap{display:flex; justify-content:space-between; gap:12px; font-size:15px; min-height:20px; font-weight:700}
+  .cap #capText{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .cap a{color:var(--pink-d); text-decoration:none; white-space:nowrap; font-weight:600; font-size:13px}
+  .thumbs{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 6px; scroll-behavior:smooth}
+  .thumbs button{flex:0 0 auto; width:92px; height:62px; padding:0; border:3px solid transparent; border-radius:12px; overflow:hidden; background:#f6eefb; opacity:.8}
+  .thumbs button.on{border-color:var(--pink); opacity:1}
+  .thumbs img{width:100%; height:100%; object-fit:cover; display:block}
+  #main{cursor:zoom-in}
+
+  /* ---------- overlays ---------- */
+  .lb{position:fixed; inset:0; z-index:100; background:rgba(30,12,50,.92); display:none; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding:20px}
+  .lb.open{display:flex}
+  .lb img{max-width:100%; max-height:calc(100vh - 110px); object-fit:contain; border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .lb .lbcap{color:#fbeaff; font-size:18px; font-weight:700; text-align:center; max-width:900px}
+  .lb button{position:absolute; border:none; background:rgba(255,255,255,.18); color:#fff; border-radius:50%; width:56px; height:56px; font-size:32px; line-height:1}
+  .lb button:hover{background:rgba(255,255,255,.3)}
+  .lb .lbx{top:16px; right:16px} .lb .lbp{left:16px; top:50%} .lb .lbn{right:16px; top:50%}
+
+  .choices{position:fixed; inset:0; z-index:90; background:rgba(40,16,70,.55); display:flex; align-items:center; justify-content:center; padding:16px}
+  .choices[hidden]{display:none}
+  .choices .box{position:relative; background:#fff; border-radius:28px; padding:26px 22px 22px; max-width:96vw}
+  .choices .row{display:flex; gap:18px; flex-wrap:wrap; justify-content:center}
+  .choice{border:3px solid var(--line); background:#fff; border-radius:20px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:18px; font-weight:800; color:var(--ink)}
+  .choice:hover,.choice:active{border-color:var(--pink); background:var(--pink-soft)}
+  .choice img{width:150px; height:100px; object-fit:contain}
+  .choices .x{position:absolute; top:6px; right:10px; border:none; background:none; font-size:30px; color:var(--muted)}
+
+  .toast{position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:14px; max-width:min(560px,92vw); font-size:14px; line-height:1.4; z-index:95}
+  .toast[hidden]{display:none}
+
+  @media (max-width:900px){
+    body{height:auto; min-height:100vh}
+    .search{margin-left:0; width:100%}
+    main{display:block; padding:8px 12px 14px}
+    .globe-card{height:auto; width:auto; max-height:none; min-height:0; margin:0 26px 12px}
+    .side{gap:12px}
+    .viewer{min-height:240px; flex:none; aspect-ratio:16/10}
+    .kc-name{font-size:25px}
+  }
+  @media (max-width:480px){
+    .brand .bu{font-size:38px}
+    .brand .bt{font-size:20px}
+    .homebtn{width:50px; height:50px}
+    .homebtn svg{width:26px; height:26px}
+    .row1{gap:6px}
+    .bigbtn.mic{width:54px; height:54px}
+    .bigbtn.mic svg{width:26px; height:26px}
+    .flagbtn{width:72px; height:52px}
+    .flagbtn svg{width:40px; height:40px}
+    .bigbtn.speak{width:56px; height:56px}
+    .kc-flag{height:64px; max-width:100px}
+    .kc-name{font-size:23px}
+    .factcard{font-size:18px}
+  }
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important} }
+</style>
+<script>
+/* ---- who is this page for? (settings come from the link made by index.html) ---- */
+(function () {
+  var hex = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.substr(i, 2), 16); }); };
+  var toHex = function (a) { return '#' + a.map(function (v) { return ('0' + Math.round(v).toString(16)).slice(-2); }).join(''); };
+  var mix = function (a, b, t) { var x = hex(a), y = hex(b); return toHex(x.map(function (v, i) { return v * (1 - t) + y[i] * t; })); };
+  var W = '#ffffff', K = '#000000';
+  var THEMES = {
+    unicorn:  { c:'#ff5fa8', d:'#d63384', ink:'#4b2a63', space:'#1a1036', logo:'🦄', traveller:'🦄', sparkles:['✨','💖','⭐','🌸'],
+                soft:'#ffe6f1', lilac:'#efe6ff', line:'#f4cfe3', line2:'#ffc2df', light:'#ff8fc7', g1:'#ff7ab8', g2:'#ff4f9a', mic1:'#9b5de5',
+                bg1:'#fff2f8', bg2:'#f0e8ff', muted:'#8a6f9e', dotoff:'#d9c8f0', fill:'#ff7eb6', stroke:'#8a1c55', bt:'#ff5fa8' },
+    animals:  { c:'#2fa44f', d:'#1f7a39', ink:'#1f4030', space:'#0e2a1c', logo:'🦁', traveller:'🦜', sparkles:['🐾','🍃','⭐','🌿'] },
+    vehicles: { c:'#2f8fe0', d:'#1d62a3', ink:'#1b3a5c', space:'#0c1d36', logo:'🚗', traveller:'✈️', sparkles:['💨','⭐','☁️','✨'] },
+    flowers:  { c:'#e69a0a', d:'#b87400', ink:'#5b3a08', space:'#2b1d12', logo:'🌻', traveller:'🐝', sparkles:['🌸','🌼','🌷','✨'], g1:'#f0a30a', g2:'#c47a00' },
+    space:    { c:'#6a5de8', d:'#4538b5', ink:'#2a2366', space:'#0b0a2a', logo:'🪐', traveller:'🚀', sparkles:['⭐','✨','🌟','💫'] },
+    ocean:    { c:'#12a8a3', d:'#0b7f7b', ink:'#0f4a4d', space:'#04212a', logo:'🐠', traveller:'🐬', sparkles:['💧','🐚','✨','🌊'] }
+  };
+  Object.keys(THEMES).forEach(function (k) {                // fill in the shades each theme did not spell out
+    var t = THEMES[k], d = function (key, v) { if (!t[key]) t[key] = v; };
+    d('soft', mix(t.c, W, .88)); d('lilac', mix(t.c, W, .84)); d('line', mix(t.c, W, .75)); d('line2', mix(t.c, W, .6));
+    d('light', mix(t.c, W, .35)); d('g1', mix(t.c, W, .2)); d('g2', t.c); d('mic1', t.d);
+    d('bg1', mix(t.c, W, .94)); d('bg2', mix(t.d, W, .93)); d('muted', mix(t.ink, W, .45)); d('dotoff', mix(t.c, W, .6));
+    d('fill', mix(t.c, W, .1)); d('stroke', mix(t.d, K, .4)); d('bt', t.d);
+  });
+  var cleanName = function (v) { v = v.replace(/[^\p{L}\p{M} '’-]/gu, '').replace(/\s+/g, ' ').replace(/^\s+/, ''); return Array.from(v).slice(0, 12).join(''); };
+  var q = new URLSearchParams(location.search);
+  var name = cleanName(q.get('name') || '').trim() || 'Gaia';
+  var tid = THEMES[q.get('theme')] ? q.get('theme') : 'animals';
+  var fav = [];
+  (q.get('fav') || '').split(',').forEach(function (s) { s = s.trim().toUpperCase(); if (/^[A-Z]{2}$/.test(s) && fav.indexOf(s) < 0) fav.push(s); });
+  var T = THEMES[tid];
+  var title = name + (/s$/i.test(name) ? "'" : "'s") + ' World';
+  window.THEME = T; window.PROFILE = { name: name, theme: tid, fav: fav.slice(0, 25), title: title };
+  var r = document.documentElement.style, rgb = hex(T.g2).join(',');
+  [['--pink', T.c], ['--pink-d', T.d], ['--pink-soft', T.soft], ['--lilac', T.lilac], ['--ink', T.ink], ['--muted', T.muted], ['--line', T.line],
+   ['--line2', T.line2], ['--light', T.light], ['--space', T.space], ['--g1', T.g1], ['--g2', T.g2], ['--mic1', T.mic1], ['--bg1', T.bg1],
+   ['--bg2', T.bg2], ['--dotoff', T.dotoff], ['--bt', T.bt], ['--rgb', rgb]].forEach(function (p) { r.setProperty(p[0], p[1]); });
+  document.title = title;
+})();
+</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="row1">
+    <a class="homebtn" id="home" href="index.html" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5M5.5 10v9.5h5v-6h3v6h5V10"/></svg></a>
+    <div class="brand"><span class="bu" id="brandEmoji">🦄</span><span class="bt" id="brandText">Gaia's<br>World</span></div>
+    <button class="flagbtn" id="lucky" type="button" aria-label="Spin the wheel to pick a country"><i class="wptr"></i><svg id="wheel" viewBox="0 0 48 48"></svg></button>
+    <button class="bigbtn mic" id="mic" type="button" hidden aria-label="Say a country">
+      <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+    </button>
+  </div>
+  <div class="search">
+    <input id="q" type="text" placeholder="Search for a country…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="list">
+    <div class="list" id="list" role="listbox"></div>
+  </div>
+</header>
+
+<div class="shelf-wrap">
+  <button class="shelf-arrow l" id="shelfL" aria-label="Scroll left">‹</button>
+  <div class="shelf" id="shelf"></div>
+  <button class="shelf-arrow r" id="shelfR" aria-label="Scroll right">›</button>
+</div>
+
+<main>
+  <section class="card globe-card">
+    <canvas id="globe">Your browser does not support HTML canvas.</canvas>
+    <div class="plane" id="plane"><div class="rot" id="rot">
+      <span class="uni" id="traveller">🦄</span><span class="sp s1" id="sp1">✨</span><span class="sp s2" id="sp2">✨</span><span class="sp s3" id="sp3">💖</span>
+    </div></div>
+    <button class="northbtn" id="north" type="button" aria-label="Turn the globe so north is up"><svg id="needle" viewBox="0 0 24 24"><path d="M12 2l5 10H7z" style="fill:var(--light)"/><path d="M12 22l5-10H7z" fill="#fff" fill-opacity=".9"/></svg></button>
+    <div class="listen" id="listen" hidden><div class="bars"><i></i><i></i><i></i><i></i></div><span>Listening…</span></div>
+    <div class="overlay" id="loading"><div class="spinner"></div><div id="loadingText">Getting the world ready…</div></div>
+    <div class="globe-note">Borders: Natural Earth · Globe: NASA Web WorldWind</div>
+  </section>
+
+  <div class="side">
+    <section class="card info" id="info">
+      <div class="empty"><div class="bigemoji" id="emptyEmoji">🦄</div><div>Tap a flag, tap the ? flag, tap the globe, or use the microphone!</div></div>
+    </section>
+
+    <section class="card gallery">
+      <div class="viewer" id="viewer">
+        <div class="msg" id="viewerMsg">Pictures will appear here ✨</div>
+        <img id="main" alt="" hidden>
+        <button class="nav prev" id="prev" aria-label="Previous picture" hidden>‹</button>
+        <button class="nav next" id="next" aria-label="Next picture" hidden>›</button>
+        <div class="count" id="count" hidden></div>
+        <button class="vbtn play" id="playBtn" aria-label="Slideshow" hidden>▶</button>
+      </div>
+      <div class="cap"><span id="capText">&nbsp;</span><a id="capLink" target="_blank" rel="noopener" hidden>Photo source ↗</a></div>
+      <div class="thumbs" id="thumbs"></div>
+    </section>
+  </div>
+</main>
+
+<div class="lb" id="lb" aria-modal="true" role="dialog">
+  <button class="lbx" id="lbx" aria-label="Close">×</button>
+  <button class="lbp" id="lbp" aria-label="Previous picture">‹</button>
+  <img id="lbimg" alt="">
+  <button class="lbn" id="lbn" aria-label="Next picture">›</button>
+  <div class="lbcap"><span id="lbcap"></span></div>
+</div>
+
+<div class="choices" id="choices" hidden>
+  <div class="box"><button class="x" id="choicesX" aria-label="Close">×</button><div class="row" id="choiceRow"></div></div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---- apply the child's name and theme to the page ---- */
+(function personalise() {
+  const T = window.THEME, P = window.PROFILE, $1 = s => document.querySelector(s);
+  $1('#brandEmoji').textContent = T.logo;
+  const bt = $1('#brandText'); bt.textContent = ''; 
+  const poss = P.name + (/s$/i.test(P.name) ? "'" : "'s");
+  bt.appendChild(document.createTextNode(poss)); bt.appendChild(document.createElement('br')); bt.appendChild(document.createTextNode('World'));
+  $1('#traveller').textContent = T.traveller;
+  ['#sp1', '#sp2', '#sp3'].forEach((id, i) => { $1(id).textContent = T.sparkles[i]; });
+  $1('#emptyEmoji').textContent = T.logo;
+  // the spin wheel, drawn in the theme colours
+  const svg = $1('#wheel'), n = 8, R = 22, cx = 24, cy = 24;
+  const pt = a => [cx + R * Math.cos(a), cy + R * Math.sin(a)];
+  let h = '';
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2, p0 = pt(a0), p1 = pt(a1);
+    const fill = i % 2 ? 'var(--light)' : 'var(--pink)';
+    h += '<path d="M24 24L' + p0.join(' ') + 'A22 22 0 0 1 ' + p1.join(' ') + 'Z" fill="' + fill + '"/>';
+  }
+  h += '<circle cx="24" cy="24" r="22" fill="none" stroke="var(--pink-d)" stroke-width="2"/><circle cx="24" cy="24" r="4.5" fill="#fff" stroke="var(--pink-d)" stroke-width="2"/>';
+  svg.innerHTML = h;
+  // the name always fits on the top row, even a 12-letter one
+  const brand = $1('.brand'), em = $1('#brandEmoji'), bu = $1('.brand .bt');
+  function fit() {
+    const base = window.innerWidth <= 480 ? 20 : 25;
+    function tooWide() { return bu.scrollWidth > brand.clientWidth - (em.style.display === 'none' ? 0 : em.offsetWidth + 8) + 1; }
+    function shrink(min) { let size = base; bu.style.fontSize = size + 'px'; while (tooWide() && size > min) { size -= 1; bu.style.fontSize = size + 'px'; } return size; }
+    em.style.display = '';
+    if (shrink(15) <= 15 && tooWide()) { em.style.display = 'none'; shrink(10); }   // very long name: drop the little emoji to make room
+  }
+  fit(); window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+const $ = s => document.querySelector(s);
+
+/* ------------------------------------------------------------------
+   Country dataset: ISO2 | Name | Independence | Famous things (also used for pictures)
+------------------------------------------------------------------- */
+const DATA = `
+AF|Afghanistan|1919 (from Britain)|Bamiyan Buddhas;Band-e Amir;Minaret of Jam;Blue Mosque Mazar-i-Sharif
+AL|Albania|1912 (from the Ottoman Empire)|Butrint;Berat;Gjirokastër;Albanian Riviera
+DZ|Algeria|1962 (from France)|Tassili n'Ajjer;Timgad;Casbah of Algiers;Sahara
+AD|Andorra|1278 (Paréage treaty)|Casa de la Vall;Grandvalira;Madriu-Perafita-Claror Valley;Sant Joan de Caselles
+AO|Angola|1975 (from Portugal)|Kalandula Falls;Fortaleza de São Miguel;Quiçama National Park;Tundavala Gap
+AG|Antigua and Barbuda|1981 (from the UK)|Nelson's Dockyard;Shirley Heights;Half Moon Bay Antigua;St. John's Cathedral Antigua
+AR|Argentina|1816 (from Spain)|Iguazu Falls;Perito Moreno Glacier;Obelisco de Buenos Aires;Aconcagua
+AM|Armenia|1991 (from the USSR)|Mount Ararat;Geghard Monastery;Lake Sevan;Khor Virap
+AU|Australia|1901 (Federation)|Sydney Opera House;Uluru;Great Barrier Reef;Sydney Harbour Bridge
+AT|Austria|1955 (State Treaty)|Schönbrunn Palace;Hallstatt;Vienna State Opera;Grossglockner
+AZ|Azerbaijan|1991 (from the USSR)|Flame Towers;Maiden Tower Baku;Gobustan;Sheki Khan's Palace
+BS|Bahamas|1973 (from the UK)|Atlantis Paradise Island;Exuma swimming pigs;Harbour Island;Nassau
+BH|Bahrain|1971 (from the UK)|Bahrain Fort;Bahrain World Trade Center;Al Fateh Mosque;Tree of Life Bahrain
+BD|Bangladesh|1971 (from Pakistan)|Sundarbans;Lalbagh Fort;Cox's Bazar;Sixty Dome Mosque
+BB|Barbados|1966 (from the UK)|Bathsheba;Harrison's Cave;Crane Beach Barbados;Bridgetown
+BY|Belarus|1991 (from the USSR)|Mir Castle;Białowieża Forest;Nesvizh Castle;Minsk
+BE|Belgium|1830 (from the Netherlands)|Grand Place Brussels;Atomium;Bruges;Manneken Pis
+BZ|Belize|1981 (from the UK)|Great Blue Hole;Caracol;Xunantunich;Belize Barrier Reef
+BJ|Benin|1960 (from France)|Royal Palaces of Abomey;Ganvié;Pendjari National Park;Ouidah
+BT|Bhutan|1907 (Wangchuck monarchy)|Tiger's Nest Monastery;Punakha Dzong;Dochula Pass;Trongsa Dzong
+BO|Bolivia|1825 (from Spain)|Salar de Uyuni;Tiwanaku;Lake Titicaca;Laguna Colorada
+BA|Bosnia and Herzegovina|1992 (from Yugoslavia)|Stari Most;Kravice Waterfalls;Sarajevo;Počitelj
+BW|Botswana|1966 (from the UK)|Okavango Delta;Chobe National Park;Makgadikgadi Pans;Tsodilo Hills
+BR|Brazil|1822 (from Portugal)|Christ the Redeemer;Iguazu Falls;Amazon rainforest;Sugarloaf Mountain
+BN|Brunei|1984 (from the UK)|Omar Ali Saifuddien Mosque;Kampong Ayer;Istana Nurul Iman;Jame' Asr Hassanil Bolkiah Mosque
+BG|Bulgaria|1908 (from the Ottoman Empire)|Rila Monastery;Alexander Nevsky Cathedral;Seven Rila Lakes;Nessebar
+BF|Burkina Faso|1960 (from France)|Ruins of Loropéni;Banfora Cascades;Sindou Peaks;Grand Mosque of Bobo-Dioulasso
+BI|Burundi|1962 (from Belgium)|Lake Tanganyika;Kibira National Park;Rusizi National Park;Gitega
+CV|Cabo Verde|1975 (from Portugal)|Pico do Fogo;Cidade Velha;Sal island;Santo Antão
+KH|Cambodia|1953 (from France)|Angkor Wat;Bayon Temple;Ta Prohm;Tonlé Sap
+CM|Cameroon|1960 (from France)|Mount Cameroon;Waza National Park;Limbe;Kribi Lobé Falls
+CA|Canada|1867 (Confederation)|CN Tower;Niagara Falls;Banff National Park;Lake Louise
+CF|Central African Republic|1960 (from France)|Dzanga-Sangha;Boali Falls;Bangui;Manovo-Gounda St Floris National Park
+TD|Chad|1960 (from France)|Lakes of Ounianga;Zakouma National Park;Ennedi Plateau;Lake Chad
+CL|Chile|1818 (from Spain)|Easter Island moai;Torres del Paine;Atacama Desert;Valparaíso
+CN|China|Ancient state (People's Republic founded 1949)|Great Wall of China;Forbidden City;Terracotta Army;Giant panda
+CO|Colombia|1810 (from Spain)|Cartagena;Cocora Valley;Caño Cristales;Ciudad Perdida
+KM|Comoros|1975 (from France)|Mount Karthala;Moroni;Mohéli Marine Park;Itsandra beach
+CG|Republic of the Congo|1960 (from France)|Odzala-Kokoua National Park;Brazzaville;Basilique Sainte-Anne;Conkouati-Douli National Park
+CD|DR Congo|1960 (from Belgium)|Virunga National Park;Congo River;Mount Nyiragongo;Kinshasa
+CR|Costa Rica|1821 (from Spain)|Arenal Volcano;Monteverde Cloud Forest;Manuel Antonio National Park;Tortuguero
+CI|Côte d'Ivoire|1960 (from France)|Basilica of Our Lady of Peace Yamoussoukro;Taï National Park;Grand-Bassam;Comoé National Park
+HR|Croatia|1991 (from Yugoslavia)|Dubrovnik;Plitvice Lakes;Diocletian's Palace;Hvar
+CU|Cuba|1902 (from the USA)|Havana Malecón;Viñales Valley;Trinidad Cuba;El Capitolio Havana
+CY|Cyprus|1960 (from the UK)|Kourion;Petra tou Romiou;Paphos Mosaics;Troodos Mountains
+CZ|Czechia|1993 (Velvet Divorce)|Prague Castle;Charles Bridge;Prague Astronomical Clock;Český Krumlov
+DK|Denmark|Ancient kingdom (unified 10th century)|Nyhavn;Tivoli Gardens;Little Mermaid statue;Kronborg Castle
+DJ|Djibouti|1977 (from France)|Lake Assal;Lac Abbé;Day Forest National Park;Moucha Island
+DM|Dominica|1978 (from the UK)|Boiling Lake;Morne Trois Pitons;Trafalgar Falls;Champagne Reef
+DO|Dominican Republic|1844 (from Haiti)|Punta Cana;Zona Colonial Santo Domingo;Saona Island;Altos de Chavón
+EC|Ecuador|1822 (from Spain)|Galápagos Islands;Cotopaxi;Quito;Pailón del Diablo
+EG|Egypt|1922 (from the UK)|Great Pyramid of Giza;Sphinx;Karnak;Abu Simbel
+SV|El Salvador|1821 (from Spain)|Santa Ana Volcano;Joya de Cerén;Ruta de las Flores;El Tunco
+GQ|Equatorial Guinea|1968 (from Spain)|Malabo Cathedral;Monte Alén National Park;Bioko;Annobón
+ER|Eritrea|1993 (from Ethiopia)|Asmara;Massawa;Dahlak Archipelago;Fiat Tagliero
+EE|Estonia|1991 (from the USSR)|Tallinn Old Town;Lahemaa National Park;Saaremaa;Tartu
+SZ|Eswatini|1968 (from the UK)|Mlilwane Wildlife Sanctuary;Mantenga Falls;Umhlanga Reed Dance;Hlane Royal National Park
+ET|Ethiopia|Ancient state (never colonised)|Lalibela;Simien Mountains;Axum obelisk;Danakil Depression
+FJ|Fiji|1970 (from the UK)|Mamanuca Islands;Sabeto Mud Pool;Sri Siva Subramaniya Temple Nadi;Yasawa Islands
+FI|Finland|1917 (from Russia)|Helsinki Cathedral;Northern Lights Lapland;Suomenlinna;Santa Claus Village
+FR|France|Ancient state (Republic proclaimed 1792)|Eiffel Tower;Louvre;Mont Saint-Michel;Palace of Versailles
+GA|Gabon|1960 (from France)|Loango National Park;Lopé National Park;Libreville;Ivindo National Park
+GM|Gambia|1965 (from the UK)|Kunta Kinteh Island;River Gambia;Kachikally Crocodile Pool;Stone circles of Senegambia
+GE|Georgia|1991 (from the USSR)|Gergeti Trinity Church;Tbilisi;Svaneti towers;Uplistsikhe
+DE|Germany|1871 (unification)|Brandenburg Gate;Neuschwanstein Castle;Cologne Cathedral;Berlin Wall
+GH|Ghana|1957 (from the UK)|Cape Coast Castle;Kakum National Park;Mole National Park;Independence Arch Accra
+GR|Greece|1829 (from the Ottoman Empire)|Acropolis of Athens;Parthenon;Santorini;Meteora
+GD|Grenada|1974 (from the UK)|Grand Anse Beach;Underwater Sculpture Park Grenada;St. George's Grenada;Grand Etang
+GT|Guatemala|1821 (from Spain)|Tikal;Antigua Guatemala;Lake Atitlán;Semuc Champey
+GN|Guinea|1958 (from France)|Mount Nimba;Fouta Djallon;Conakry;Chutes de Kinkon
+GW|Guinea-Bissau|1973 (from Portugal)|Bijagós Archipelago;Bissau;Cacheu;Orango Island
+GY|Guyana|1966 (from the UK)|Kaieteur Falls;Iwokrama;St George's Cathedral Georgetown;Rupununi
+HT|Haiti|1804 (from France)|Citadelle Laferrière;Sans-Souci Palace;Bassin-Bleu;Jacmel
+HN|Honduras|1821 (from Spain)|Copán;Roatán;Pico Bonito;Comayagua
+HU|Hungary|Ancient kingdom (founded 1000)|Hungarian Parliament Building;Széchenyi Chain Bridge;Buda Castle;Lake Balaton
+IS|Iceland|1944 (from Denmark)|Gullfoss;Blue Lagoon Iceland;Hallgrímskirkja;Northern Lights Iceland
+IN|India|1947 (from the UK)|Taj Mahal;India Gate;Red Fort;Golden Temple
+ID|Indonesia|1945 (from the Netherlands)|Borobudur;Bali rice terraces;Komodo dragon;Mount Bromo
+IR|Iran|Ancient state (Islamic Republic 1979)|Persepolis;Naqsh-e Jahan Square;Azadi Tower;Sheikh Lotfollah Mosque
+IQ|Iraq|1932 (from the UK)|Babylon;Ctesiphon;Great Mosque of Samarra;Erbil Citadel
+IE|Ireland|1922 (from the UK)|Ring of Kerry;Newgrange;Dublin Castle;Rock of Cashel
+IL|Israel|1948 (declared)|Western Wall;Masada;Dome of the Rock;Dead Sea
+IT|Italy|1861 (unification)|Colosseum;Leaning Tower of Pisa;Venice Grand Canal;Trevi Fountain
+JM|Jamaica|1962 (from the UK)|Dunn's River Falls;Blue Mountains Jamaica;Seven Mile Beach Negril;Bob Marley Museum
+JP|Japan|Ancient state (660 BC, traditional)|Mount Fuji;Fushimi Inari Shrine;Himeji Castle;Shibuya Crossing
+JO|Jordan|1946 (from the UK)|Petra;Wadi Rum;Jerash;Dead Sea Jordan
+KZ|Kazakhstan|1991 (from the USSR)|Baiterek;Charyn Canyon;Khan Shatyr;Kolsai Lakes
+KE|Kenya|1963 (from the UK)|Maasai Mara;Mount Kenya;Amboseli National Park;Lamu Old Town
+KI|Kiribati|1979 (from the UK)|Tarawa;Kiritimati;Phoenix Islands Protected Area;Christmas Island Kiribati
+KP|North Korea|1948 (DPRK founded)|Mount Paektu;Arch of Triumph Pyongyang;Ryugyong Hotel;Kumgang Mountain
+KR|South Korea|1948 (Republic founded)|Gyeongbokgung;N Seoul Tower;Jeju Island;Bulguksa
+KW|Kuwait|1961 (from the UK)|Kuwait Towers;Grand Mosque Kuwait;Liberation Tower Kuwait;Failaka Island
+KG|Kyrgyzstan|1991 (from the USSR)|Issyk-Kul;Ala Archa National Park;Song Kol;Tash Rabat
+LA|Laos|1953 (from France)|Kuang Si Falls;Luang Prabang;Pha That Luang;Plain of Jars
+LV|Latvia|1991 (from the USSR)|Riga Old Town;Riga Art Nouveau;Gauja National Park;Rundāle Palace
+LB|Lebanon|1943 (from France)|Baalbek;Jeita Grotto;Byblos;Cedars of God
+LS|Lesotho|1966 (from the UK)|Maletsunyane Falls;Thaba Bosiu;Sani Pass;Katse Dam
+LR|Liberia|1847 (declared)|Sapo National Park;Providence Island Monrovia;Robertsport;Mount Nimba Liberia
+LY|Libya|1951 (from Italy, UK and France)|Leptis Magna;Sabratha;Ghadames;Acacus Mountains
+LI|Liechtenstein|1806 (Confederation of the Rhine)|Vaduz Castle;Gutenberg Castle Balzers;Malbun;Vaduz Cathedral
+LT|Lithuania|1990 (from the USSR)|Trakai Island Castle;Hill of Crosses;Vilnius Old Town;Curonian Spit
+LU|Luxembourg|1839 (Treaty of London)|Bock Casemates;Grand Ducal Palace Luxembourg;Vianden Castle;Adolphe Bridge
+MG|Madagascar|1960 (from France)|Avenue of the Baobabs;Tsingy de Bemaraha;Ring-tailed lemur;Isalo National Park
+MW|Malawi|1964 (from the UK)|Lake Malawi;Mount Mulanje;Liwonde National Park;Nyika Plateau
+MY|Malaysia|1957 (from the UK)|Petronas Towers;Batu Caves;Mount Kinabalu;Langkawi
+MV|Maldives|1965 (from the UK)|Malé;Maldives overwater bungalow;Baa Atoll;Hulhumalé
+ML|Mali|1960 (from France)|Great Mosque of Djenné;Timbuktu;Bandiagara Escarpment;Tomb of Askia
+MT|Malta|1964 (from the UK)|Valletta;Mdina;Blue Grotto Malta;Ħaġar Qim
+MH|Marshall Islands|1986 (from the USA)|Majuro;Arno Atoll;Laura Beach Majuro;Jaluit Atoll
+MR|Mauritania|1960 (from France)|Richat Structure;Banc d'Arguin;Chinguetti;Ouadane
+MU|Mauritius|1968 (from the UK)|Le Morne Brabant;Seven Coloured Earths;Chamarel Waterfall;Pamplemousses Botanical Garden
+MX|Mexico|1821 (from Spain)|Chichen Itza;Teotihuacan;Palacio de Bellas Artes;Cancún
+FM|Micronesia|1986 (from the USA)|Nan Madol;Chuuk Lagoon;Kosrae;Pohnpei
+MD|Moldova|1991 (from the USSR)|Orheiul Vechi;Saharna Monastery;Soroca Fortress;Chișinău
+MC|Monaco|1297 (Grimaldi rule)|Monaco Cathedral;Prince's Palace of Monaco;Port Hercules;Monaco Grand Prix
+MN|Mongolia|1911 (from Qing China)|Genghis Khan Statue Complex;Gobi Desert;Erdene Zuu Monastery;Naadam Festival
+ME|Montenegro|2006 (from Serbia and Montenegro)|Bay of Kotor;Durmitor;Sveti Stefan;Ostrog Monastery
+MA|Morocco|1956 (from France)|Hassan II Mosque;Chefchaouen;Jemaa el-Fnaa;Aït Benhaddou
+MZ|Mozambique|1975 (from Portugal)|Ilha de Moçambique;Bazaruto Archipelago;Gorongosa National Park;Maputo railway station
+MM|Myanmar|1948 (from the UK)|Shwedagon Pagoda;Bagan;Inle Lake;Mandalay Palace
+NA|Namibia|1990 (from South Africa)|Sossusvlei;Etosha National Park;Skeleton Coast;Fish River Canyon
+NR|Nauru|1968 (from Australia, NZ and the UK)|Anibare Bay;Command Ridge;Buada Lagoon;Moqua Caves
+NP|Nepal|Ancient state (never colonised)|Mount Everest;Boudhanath;Pashupatinath;Swayambhunath
+NL|Netherlands|1581 (Act of Abjuration)|Kinderdijk windmills;Amsterdam canals;Keukenhof;Rijksmuseum
+NZ|New Zealand|1907 (Dominion status)|Milford Sound;Hobbiton;Sky Tower Auckland;Mount Cook
+NI|Nicaragua|1821 (from Spain)|Granada Nicaragua;Ometepe;León Cathedral;Masaya Volcano
+NE|Niger|1960 (from France)|Aïr Mountains;Agadez Mosque;Ténéré;W National Park
+NG|Nigeria|1960 (from the UK)|Zuma Rock;Olumo Rock;Yankari National Park;Aso Rock
+MK|North Macedonia|1991 (from Yugoslavia)|Lake Ohrid;Matka Canyon;Skopje Stone Bridge;Saint Naum Monastery
+NO|Norway|1905 (from Sweden)|Geirangerfjord;Preikestolen;Northern Lights Norway;Oslo Opera House
+OM|Oman|Ancient state (Al Said dynasty 1744)|Sultan Qaboos Grand Mosque;Wahiba Sands;Nizwa Fort;Muttrah Souq
+PK|Pakistan|1947 (from the UK)|Badshahi Mosque;K2;Faisal Mosque;Hunza Valley
+PW|Palau|1994 (from the USA)|Rock Islands Southern Lagoon;Jellyfish Lake;Ngardmau Waterfall;Koror
+PS|Palestine|1988 (declared)|Jericho;Hisham's Palace;Mar Saba;Battir
+PA|Panama|1903 (from Colombia)|Panama Canal;Casco Viejo;San Blas Islands;Bridge of the Americas
+PG|Papua New Guinea|1975 (from Australia)|Kokoda Track;Mount Wilhelm;Tufi fjords;Sepik River
+PY|Paraguay|1811 (from Spain)|Jesuit Missions of La Santísima Trinidad;Itaipu Dam;Asunción;Ybycuí National Park
+PE|Peru|1821 (from Spain)|Machu Picchu;Rainbow Mountain Peru;Nazca Lines;Lake Titicaca Peru
+PH|Philippines|1946 (from the USA)|Chocolate Hills;Banaue Rice Terraces;Puerto Princesa Underground River;Mayon Volcano
+PL|Poland|1918 (restored)|Wawel Castle;Malbork Castle;Wieliczka Salt Mine;Kraków Main Square
+PT|Portugal|1143 (Treaty of Zamora)|Belém Tower;Pena Palace;Livraria Lello;Algarve
+QA|Qatar|1971 (from the UK)|Museum of Islamic Art Doha;Souq Waqif;Katara Cultural Village;Khor Al Adaid
+RO|Romania|1877 (from the Ottoman Empire)|Bran Castle;Palace of the Parliament Bucharest;Transfăgărășan;Painted churches of Moldavia
+RU|Russia|1991 (Russian Federation)|Saint Basil's Cathedral;Red Square;Hermitage Museum;Lake Baikal
+RW|Rwanda|1962 (from Belgium)|Volcanoes National Park;Lake Kivu;Nyungwe Forest;Kigali Convention Centre
+KN|Saint Kitts and Nevis|1983 (from the UK)|Brimstone Hill Fortress;Mount Liamuiga;Nevis Peak;Basseterre
+LC|Saint Lucia|1979 (from the UK)|Pitons Saint Lucia;Sulphur Springs Saint Lucia;Pigeon Island Saint Lucia;Marigot Bay
+VC|Saint Vincent and the Grenadines|1979 (from the UK)|La Soufrière;Tobago Cays;Dark View Falls;Bequia
+WS|Samoa|1962 (from New Zealand)|To Sua Ocean Trench;Lalomanu Beach;Robert Louis Stevenson Museum;Papase'ea Sliding Rocks
+SM|San Marino|301 (traditional founding)|Guaita Tower;Palazzo Pubblico San Marino;Monte Titano;Cesta Tower
+ST|São Tomé and Príncipe|1975 (from Portugal)|Pico Cão Grande;Roça Sundy;Obo National Park;São Tomé city
+SA|Saudi Arabia|1932 (unification)|Kaaba;Masjid al-Haram;Mada'in Salih;Kingdom Centre Riyadh
+SN|Senegal|1960 (from France)|Lake Retba;Gorée Island;African Renaissance Monument;Djoudj National Bird Sanctuary
+RS|Serbia|2006 (from Serbia and Montenegro)|Belgrade Fortress;Church of Saint Sava;Studenica Monastery;Devil's Town Serbia
+SC|Seychelles|1976 (from the UK)|Anse Source d'Argent;Vallée de Mai;Anse Lazio;Aldabra
+SL|Sierra Leone|1961 (from the UK)|Tacugama Chimpanzee Sanctuary;Bunce Island;Lumley Beach;Outamba-Kilimi National Park
+SG|Singapore|1965 (from Malaysia)|Marina Bay Sands;Gardens by the Bay;Merlion;Singapore Botanic Gardens
+SK|Slovakia|1993 (Velvet Divorce)|Bratislava Castle;Spiš Castle;High Tatras;Orava Castle
+SI|Slovenia|1991 (from Yugoslavia)|Lake Bled;Postojna Cave;Predjama Castle;Dragon Bridge Ljubljana
+SB|Solomon Islands|1978 (from the UK)|Marovo Lagoon;Guadalcanal American Memorial;Honiara;Rennell Island
+SO|Somalia|1960 (from Italy and the UK)|Laas Geel;Lido Beach Mogadishu;Mogadishu;Hafun
+ZA|South Africa|1910 (Union)|Table Mountain;Kruger National Park;Cape of Good Hope;Boulders Beach penguins
+SS|South Sudan|2011 (from Sudan)|Boma National Park;Sudd;Juba;Badingilo National Park
+ES|Spain|Ancient state (unified 1479)|Sagrada Família;Alhambra;Park Güell;Prado Museum
+LK|Sri Lanka|1948 (from the UK)|Sigiriya;Temple of the Tooth;Nine Arches Bridge;Galle Fort
+SD|Sudan|1956 (from the UK and Egypt)|Meroë pyramids;Jebel Barkal;Khartoum;Suakin
+SR|Suriname|1975 (from the Netherlands)|Paramaribo historic inner city;Central Suriname Nature Reserve;Brownsberg Nature Park;Fort Zeelandia Paramaribo
+SE|Sweden|Ancient state (Gustav Vasa 1523)|Vasa Museum;Stockholm Gamla Stan;Icehotel Jukkasjärvi;Stockholm City Hall
+CH|Switzerland|1291 (Federal Charter)|Matterhorn;Chapel Bridge Lucerne;Jungfraujoch;Château de Chillon
+SY|Syria|1946 (from France)|Palmyra;Krak des Chevaliers;Umayyad Mosque;Citadel of Aleppo
+TW|Taiwan|1949 (ROC relocated to Taipei)|Taipei 101;Taroko Gorge;Sun Moon Lake;Jiufen
+TJ|Tajikistan|1991 (from the USSR)|Pamir Highway;Iskanderkul;Fann Mountains;Hissar Fortress
+TZ|Tanzania|1961 (from the UK)|Mount Kilimanjaro;Serengeti;Ngorongoro Crater;Stone Town Zanzibar
+TH|Thailand|Ancient state (Sukhothai, 1238)|Grand Palace Bangkok;Wat Arun;Phi Phi Islands;Ayutthaya
+TL|Timor-Leste|2002 (from Indonesia)|Cristo Rei of Dili;Atauro Island;Mount Ramelau;Jaco Island
+TG|Togo|1960 (from France)|Koutammakou;Lomé Grand Market;Fazao-Malfakassa National Park;Aného
+TO|Tonga|1970 (from the UK)|Ha'amonga 'a Maui;Mapu'a 'a Vaea;Royal Palace Tonga;Tofua
+TT|Trinidad and Tobago|1962 (from the UK)|Pitch Lake;Maracas Bay;Trinidad Carnival;Nylon Pool Tobago
+TN|Tunisia|1956 (from France)|Carthage;El Djem amphitheatre;Sidi Bou Said;Medina of Tunis
+TR|Türkiye|1923 (Republic proclaimed)|Hagia Sophia;Cappadocia;Pamukkale;Blue Mosque Istanbul
+TM|Turkmenistan|1991 (from the USSR)|Darvaza gas crater;Ashgabat white marble;Kunya-Urgench;Nisa fortress
+TV|Tuvalu|1978 (from the UK)|Funafuti;Funafuti Conservation Area;Nanumea;Vaitupu
+UG|Uganda|1962 (from the UK)|Bwindi Impenetrable Forest;Murchison Falls;Source of the Nile Jinja;Rwenzori Mountains
+UA|Ukraine|1991 (from the USSR)|Saint Sophia Cathedral Kyiv;Lviv;Kyiv Pechersk Lavra;Carpathian Mountains
+AE|United Arab Emirates|1971 (from the UK)|Burj Khalifa;Sheikh Zayed Grand Mosque;Palm Jumeirah;Louvre Abu Dhabi
+GB|United Kingdom|1707 (Acts of Union)|Big Ben;Tower Bridge;Stonehenge;Edinburgh Castle
+US|United States|1776 (from Britain)|Statue of Liberty;Grand Canyon;Golden Gate Bridge;Mount Rushmore
+UY|Uruguay|1825 (from Brazil)|Colonia del Sacramento;Punta del Este;Palacio Salvo;Casapueblo
+UZ|Uzbekistan|1991 (from the USSR)|Registan;Bukhara;Khiva;Shah-i-Zinda
+VU|Vanuatu|1980 (from the UK and France)|Mount Yasur;Blue holes Espiritu Santo;Port Vila;SS President Coolidge
+VA|Vatican City|1929 (Lateran Treaty)|St. Peter's Basilica;Sistine Chapel;Vatican Museums;St. Peter's Square
+VE|Venezuela|1811 (from Spain)|Angel Falls;Mount Roraima;Los Roques;Caracas
+VN|Vietnam|1945 (declared)|Ha Long Bay;Hoi An;Hang Son Doong;Mekong Delta
+YE|Yemen|1990 (unification)|Socotra;Old City of Sana'a;Shibam;Dragon's blood tree
+ZM|Zambia|1964 (from the UK)|Victoria Falls;South Luangwa National Park;Lower Zambezi National Park;Kafue National Park
+ZW|Zimbabwe|1980 (from the UK)|Great Zimbabwe;Victoria Falls Zimbabwe;Hwange National Park;Matobo Hills
+HK|Hong Kong|1997 (returned to China)|Victoria Peak;Tian Tan Buddha;Star Ferry;Victoria Harbour
+XK|Kosovo|2008 (from Serbia)|Gračanica Monastery;Newborn monument;Prizren;Rugova Canyon
+`;
+
+const ALIASES = {
+  US:['USA','America','United States of America'], GB:['UK','Britain','Great Britain','England','Scotland','Wales'],
+  CZ:['Czech Republic'], SZ:['Swaziland'], CI:['Ivory Coast','Cote d\'Ivoire'], MM:['Burma'], CV:['Cape Verde'],
+  CD:['Democratic Republic of the Congo','Congo-Kinshasa','DRC'], CG:['Congo','Congo-Brazzaville'],
+  MK:['Macedonia'], TL:['East Timor'], VA:['Holy See','Vatican'], KR:['Korea','Republic of Korea'],
+  KP:['Democratic People\'s Republic of Korea'], TR:['Turkey'], RU:['Russian Federation'],
+  FM:['Federated States of Micronesia'], BS:['The Bahamas'], GM:['The Gambia'],
+  PS:['State of Palestine','Gaza','West Bank'], TW:['Republic of China'], LA:['Lao'], VN:['Viet Nam'],
+  AE:['UAE','Emirates'], BA:['Bosnia'], TT:['Trinidad','Tobago'], AG:['Antigua','Barbuda'],
+  KN:['St Kitts','Nevis','Saint Kitts'], VC:['St Vincent'], LC:['St Lucia'], ST:['Sao Tome and Principe'],
+  SY:['Syrian Arab Republic'], IR:['Persia']
+};
+
+const COUNTRIES = {};
+DATA.trim().split('\n').forEach(l => {
+  const p = l.split('|');
+  COUNTRIES[p[0]] = { iso:p[0], name:p[1], indep:p[2], famous:p[3].split(';').map(s => s.trim()) };
+});
+
+/* ------------------------------------------------------------------
+   Resources
+------------------------------------------------------------------- */
+const WW_URLS = [
+  'https://files.worldwind.arc.nasa.gov/artifactory/web/0.9.0/worldwind.min.js',
+  'https://cdn.jsdelivr.net/npm/webworldwind-esa/build/dist/worldwind.min.js',
+  'https://unpkg.com/webworldwind-esa/build/dist/worldwind.min.js'
+];
+const GEO_URLS = [
+  'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson',
+  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson'
+];
+
+function loadScript(urls) {
+  return new Promise((resolve, reject) => {
+    let i = 0;
+    (function next() {
+      if (i >= urls.length) return reject(new Error('WorldWind could not be loaded'));
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = () => (window.WorldWind ? resolve() : next());
+      s.onerror = next;
+      document.head.appendChild(s);
+    })();
+  });
+}
+async function fetchGeo() {
+  for (const u of GEO_URLS) {
+    try { const r = await fetch(u); if (r.ok) return await r.json(); } catch (e) { /* try next */ }
+  }
+  throw new Error('Country boundary data could not be loaded');
+}
+function wbFetch(ind) {
+  return fetch('https://api.worldbank.org/v2/country/all/indicator/' + ind + '?format=json&mrnev=1&per_page=500')
+    .then(r => r.json())
+    .then(j => {
+      const m = {};
+      (j[1] || []).forEach(r => { if (r.value != null && r.country && r.country.id) m[r.country.id.toUpperCase()] = { v:r.value, y:r.date }; });
+      return m;
+    }).catch(() => ({}));
+}
+
+/* ------------------------------------------------------------------
+   Helpers
+------------------------------------------------------------------- */
+const D = Math.PI / 180;
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const toVec = (lat, lon) => [Math.cos(lat*D)*Math.cos(lon*D), Math.cos(lat*D)*Math.sin(lon*D), Math.sin(lat*D)];
+const fromVec = v => ({ lat: Math.asin(clamp(v[2], -1, 1)) / D, lon: Math.atan2(v[1], v[0]) / D });
+const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+function slerp(a, b, t, omega) {
+  if (omega < 1e-9) return a;
+  const s = Math.sin(omega), A = Math.sin((1-t)*omega)/s, B = Math.sin(t*omega)/s;
+  return [A*a[0]+B*b[0], A*a[1]+B*b[1], A*a[2]+B*b[2]];
+}
+function bearing(a, b) {
+  const p1 = a.lat*D, p2 = b.lat*D, dl = (b.lon - a.lon)*D;
+  return Math.atan2(Math.sin(dl)*Math.cos(p2), Math.cos(p1)*Math.sin(p2) - Math.sin(p1)*Math.cos(p2)*Math.cos(dl)) / D;
+}
+const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+function fmtPop(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + ' billion';
+  if (n >= 1e6) return (n/1e6).toFixed(n >= 1e7 ? 1 : 2) + ' million';
+  return Math.round(n).toLocaleString('en-US');
+}
+function fmtMoney(n) {
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + ' trillion';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(n >= 1e11 ? 0 : 1) + ' billion';
+  return '$' + Math.round(n/1e6).toLocaleString('en-US') + ' million';
+}
+
+/* ------------------------------------------------------------------
+   App state
+------------------------------------------------------------------- */
+const state = { wwd:null, base:null, hi:null, feats:[], countries:{}, sel:0, current:null, cur:null, wb:Promise.resolve({pop:{},gdp:{}}) };
+let WW, GREY, SELECTED, POLITICAL;
+
+const PALETTE = ['#f2b3b3','#f7d3a1','#f4eca6','#bfe3ac','#a6dad3','#adc9f0','#cdbcec','#efbad9'];
+
+function isoOf(P) {
+  let a = P.ISO_A2_EH;
+  if (!a || a === '-99') a = P.ISO_A2;
+  if (!a || a === '-99') a = (P.ADM0_A3 === 'KOS') ? 'XK' : null;
+  return a;
+}
+function hashIdx(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h*31 + s.charCodeAt(i)) >>> 0; return h % PALETTE.length; }
+
+function ringInfo(ring) {
+  let a = 0, minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    a += ring[j][0]*ring[i][1] - ring[i][0]*ring[j][1];
+    const lon = ring[i][0], lat = ring[i][1];
+    if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+    if (lon < minLon) minLon = lon; if (lon > maxLon) maxLon = lon;
+  }
+  const midLat = (minLat + maxLat) / 2;
+  return { area: Math.abs(a/2) * Math.cos(midLat*D), minLat, maxLat, minLon, maxLon };
+}
+
+function buildFeatures(geo) {
+  const feats = [];
+  for (const f of geo.features) {
+    const P = {}; for (const k in f.properties) P[k.toUpperCase()] = f.properties[k];
+    if (P.ADM0_A3 === 'ATA' || P.ISO_A2 === 'AQ' || !f.geometry) continue;
+    const g = f.geometry;
+    const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+    if (!polys.length) continue;
+    const infos = polys.map(p => ringInfo(p[0]));
+    const maxArea = Math.max(...infos.map(i => i.area));
+    const iso = isoOf(P);
+    const feat = {
+      P, iso: (iso && COUNTRIES[iso]) ? iso : null,
+      colorIdx: hashIdx(P.ADM0_A3 || P.NAME || ''),
+      area: infos.reduce((s, i) => s + i.area, 0),
+      shapes: [], bounds: [], infos: [], maxArea
+    };
+    polys.forEach((poly, i) => {
+      if (infos[i].area < 0.004 && infos[i].area < maxArea) return;     // skip specks
+      const rings = poly.map(r => {
+        const pts = r.map(c => new WW.Location(c[1], c[0]));
+        const f0 = r[0], l0 = r[r.length-1];
+        if (r.length > 3 && f0[0] === l0[0] && f0[1] === l0[1]) pts.pop();
+        return pts;
+      });
+      feat.bounds.push(rings.length === 1 ? rings[0] : rings);
+      feat.infos.push(infos[i]);
+    });
+    feats.push(feat);
+  }
+  return feats;
+}
+
+function computeTarget(feats) {
+  let maxA = 0;
+  feats.forEach(f => f.infos.forEach(i => { if (i.area > maxA) maxA = i.area; }));
+  let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+  feats.forEach(f => f.infos.forEach(i => {
+    if (i.area >= maxA * 0.25) {
+      minLat = Math.min(minLat, i.minLat); maxLat = Math.max(maxLat, i.maxLat);
+      minLon = Math.min(minLon, i.minLon); maxLon = Math.max(maxLon, i.maxLon);
+    }
+  }));
+  const lat = (minLat + maxLat) / 2, lon = (minLon + maxLon) / 2;
+  const extent = Math.max(maxLat - minLat, (maxLon - minLon) * Math.cos(lat*D));
+  return { lat, lon, range: clamp(extent * 111000 * 2.1, 4.5e5, 1.6e7) };
+}
+
+/* ------------------------------------------------------------------
+   Globe
+------------------------------------------------------------------- */
+function col(h, a) {
+  return new WW.Color(parseInt(h.slice(1,3),16)/255, parseInt(h.slice(3,5),16)/255, parseInt(h.slice(5,7),16)/255, a == null ? 1 : a);
+}
+function mkAttrs(fill, line, w) {
+  const a = new WW.ShapeAttributes(null);
+  a.interiorColor = col(fill); a.outlineColor = col(line); a.outlineWidth = w;
+  a.drawInterior = true; a.drawOutline = true;
+  return a;
+}
+
+function setupGlobe(geo) {
+  WW.Logger.setLoggingLevel(WW.Logger.LEVEL_WARNING);
+  const wwd = new WW.WorldWindow('globe', new WW.ZeroElevationModel());
+  state.wwd = wwd;
+  try { { const sp = window.THEME.space.match(/\w\w/g).map(x => parseInt(x, 16) / 255); wwd.drawContext.clearColor = new WW.Color(sp[0], sp[1], sp[2], 1); } } catch (e) {}
+
+  // Ocean: a single flat colour covering the whole sphere
+  const oc = document.createElement('canvas'); oc.width = oc.height = 16;
+  const ctx = oc.getContext('2d'); ctx.fillStyle = '#9fc5e0'; ctx.fillRect(0, 0, 16, 16);
+  const oceanLayer = new WW.RenderableLayer('Ocean');
+  oceanLayer.pickEnabled = false;
+  oceanLayer.addRenderable(new WW.SurfaceImage(WW.Sector.FULL_SPHERE, oc.toDataURL()));
+  wwd.addLayer(oceanLayer);
+
+  POLITICAL = PALETTE.map(c => mkAttrs(c, '#6d7480', 1));
+  GREY = mkAttrs('#dcdfe4', '#7b828c', 1);
+  SELECTED = mkAttrs(window.THEME.fill, window.THEME.stroke, 3.5);
+
+  const feats = buildFeatures(geo);
+  state.feats = feats;
+  const base = new WW.RenderableLayer('Countries'); base.pickEnabled = false;
+  const hi = new WW.RenderableLayer('Selected');    hi.pickEnabled = false;
+  [...feats].sort((a, b) => b.area - a.area).forEach(f => {
+    f.bounds.forEach(b => {
+      const s = new WW.SurfacePolygon(b, POLITICAL[f.colorIdx]);
+      s.pathType = WW.LINEAR;
+      f.shapes.push(s);
+      base.addRenderable(s);
+    });
+  });
+  const tapLayer = new WW.RenderableLayer('Tapped'); tapLayer.pickEnabled = false;
+  wwd.addLayer(base); wwd.addLayer(hi); wwd.addLayer(tapLayer);
+  state.base = base; state.hi = hi; state.tap = tapLayer;
+
+  // Group selectable countries
+  feats.forEach(f => {
+    if (!f.iso) return;
+    const c = state.countries[f.iso] || (state.countries[f.iso] = Object.assign({ feats: [] }, COUNTRIES[f.iso]));
+    c.feats.push(f);
+  });
+  Object.values(state.countries).forEach(c => { c.target = computeTarget(c.feats); });
+
+  const n = wwd.navigator;
+  n.lookAtLocation.latitude = 20; n.lookAtLocation.longitude = 10; n.range = 2.4e7; n.heading = 0; n.tilt = 0;
+  wwd.redraw();
+}
+
+function setGrey(on) {
+  state.feats.forEach(f => {
+    const a = on ? GREY : POLITICAL[f.colorIdx];
+    f.shapes.forEach(s => { s.attributes = a; });
+  });
+}
+function highlight(c) {
+  state.hi.removeAllRenderables();
+  c.feats.forEach(f => f.bounds.forEach(b => {
+    const s = new WW.SurfacePolygon(b, SELECTED);
+    s.pathType = WW.LINEAR;
+    state.hi.addRenderable(s);
+  }));
+  setGrey(true);
+  state.wwd.redraw();
+}
+
+/* ------------------------------------------------------------------
+   Plane flight
+------------------------------------------------------------------- */
+const plane = $('#plane'), rot = $('#rot');
+const setAngle = () => {};
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+async function fly(target, token) {
+  const wwd = state.wwd, n = wwd.navigator;
+  const from = { lat: n.lookAtLocation.latitude, lon: n.lookAtLocation.longitude, range: n.range };
+  n.heading = 0; n.tilt = 0;
+  const a = toVec(from.lat, from.lon), b = toVec(target.lat, target.lon);
+  const omega = Math.acos(clamp(dot(a, b), -1, 1));
+  const distM = omega * 6371000;
+
+  if (distM < 2000) {                                  // already there
+    plane.classList.remove('show');
+    n.lookAtLocation.latitude = target.lat; n.lookAtLocation.longitude = target.lon; n.range = target.range;
+    wwd.redraw();
+    return true;
+  }
+
+  setAngle(bearing(from, target) - n.heading);
+  plane.classList.add('show');                          // plane appears at the centre of the origin
+  await wait(380);
+  if (token !== state.sel) return false;
+
+  const dur = clamp(2200 + distM / 1000 * 0.45, 2600, 7000);
+  const lift = Math.min(distM * 0.9, 1.3e7);
+  return new Promise(resolve => {
+    let t0 = null;
+    function frame(ts) {
+      if (token !== state.sel) return resolve(false);
+      if (t0 === null) t0 = ts;
+      const t = clamp((ts - t0) / dur, 0, 1), e = ease(t);
+      const p = fromVec(slerp(a, b, e, omega));
+      const q = fromVec(slerp(a, b, Math.min(1, e + 0.01), omega));
+      if (t < 1) setAngle(bearing(p, q) - n.heading);
+      n.lookAtLocation.latitude = p.lat; n.lookAtLocation.longitude = p.lon;
+      n.range = clamp(from.range + (target.range - from.range) * e + lift * Math.sin(Math.PI * t), 3e5, 2.4e7);
+      wwd.redraw();
+      if (t < 1) return requestAnimationFrame(frame);
+      n.lookAtLocation.latitude = target.lat; n.lookAtLocation.longitude = target.lon; n.range = target.range;
+      plane.classList.remove('show');                   // plane vanishes at the centre of the destination
+      wwd.redraw();
+      resolve(true);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ------------------------------------------------------------------
+   Kid features: favourites, fun facts, reading aloud
+------------------------------------------------------------------- */
+let FAVOURITES = window.PROFILE.fav.slice();   // up to 25 country codes from the link; topped up with random countries in init()
+
+const FACTS_DATA = `
+FR|France has a giant iron tower in Paris called the Eiffel Tower. It reaches way up into the sky!|In France, people eat long crunchy bread called baguettes. Yum!|France is famous for yummy pastries like croissants and pretty, colourful macarons.|The Louvre museum in Paris is home to a famous painting called the Mona Lisa.
+US|The United States has a big green statue holding a torch. She is called the Statue of Liberty.|The Grand Canyon in the United States is a gigantic, deep valley carved by a river over millions of years.|In Yellowstone Park in the United States, a geyser called Old Faithful shoots steamy hot water high into the air.|Hawaii, in the United States, is made of islands with volcanoes and sandy beaches.
+GB|In the United Kingdom, Big Ben is a famous clock tower in London that goes bong!|The King has a big palace in London called Buckingham Palace, and the guards wear tall furry hats.|Scotland, in the United Kingdom, has deep lakes called lochs, and a story about a monster in Loch Ness!|Many red buses in the United Kingdom have two floors, so you can sit upstairs.
+AR|Argentina has giant waterfalls called Iguazú Falls. The water makes a thundering roar!|In Argentina, you can see a giant river of ice called the Perito Moreno Glacier.|Penguins live on the coast of Argentina!|People in Argentina love football and dance a beautiful dance called the tango.
+CL|Chile is a very long, skinny country, like a ribbon along the edge of South America.|On Easter Island in Chile, there are giant stone heads called moai.|Chile has the Atacama Desert, one of the driest places on Earth.|Chile has lots of volcanoes, and the tall Andes mountains run all along its side.
+CN|The Great Wall of China is a super long wall that winds over mountains and hills.|Giant pandas live in China, and they munch bamboo all day long!|Chinese New Year has red lanterns, dragon dances, and lucky red packets.|Long ago, people in China invented paper and kites!
+SG|Singapore has giant tree-shaped towers called Supertrees that light up at night.|The Merlion in Singapore is a statue with a lion's head and a fish's body.|Singapore is both a city and a country, on an island with lots of green plants.|Marina Bay Sands in Singapore has three tall towers with a big boat-shaped roof on top.
+IN|India has a beautiful white palace called the Taj Mahal, made of shiny marble.|In India, people celebrate Diwali, the festival of lights, with lamps and sparkles.|Tigers and elephants live in India.|At Holi in India, people throw bright coloured powder and laugh together!
+JP|Mount Fuji in Japan is a snowy mountain shaped like a big cone.|Japan has super fast bullet trains called Shinkansen that zoom past!|In Japan, cherry trees grow pink blossoms every spring.|In Japan, there are snow monkeys that relax in hot springs!
+KR|South Korea has pink cherry blossoms in the spring.|In South Korea, people eat kimchi and wear a colourful dress called a hanbok on special days.|Jeju Island in South Korea was made by a volcano and has beautiful beaches.|K-pop music and dancing come from South Korea.
+HK|Hong Kong has lots of tall, sparkly buildings and a harbour full of boats.|In Hong Kong, you can ride the Star Ferry across the water and a tram up a very steep hill.|Hong Kong has a giant, sitting Buddha statue called the Tian Tan Buddha.|Hong Kong is famous for yummy dim sum dumplings.
+ES|Spain has a colourful church called the Sagrada Família, with tall, bumpy towers.|In Spain, people dance a lively dance called flamenco.|Spain has a festival called La Tomatina, where people throw tomatoes at each other!|Spain grows lots of oranges and olives.
+EE|Estonia has old castles, and its capital Tallinn looks like a town from a storybook.|Estonia is a small country by the sea with more than two thousand islands.|Skype, a way to talk to people on video, was made by programmers from Estonia.|Estonia has lots of forests where people love picking berries.
+FI|In Finland, there is a village near the Arctic Circle where Santa Claus lives.|Finland has thousands and thousands of lakes.|In Finland, you might see the Northern Lights dancing in the sky.|Reindeer live in the snowy north of Finland.
+NO|Norway has deep, beautiful valleys filled with sea water, called fjords.|In Norway, the Northern Lights make green and pink lights in the sky.|Norway has lots of snow, and many people there love skiing.|The Oslo Opera House in Norway has a sloping roof that you can walk up.
+CH|Switzerland has tall, snowy mountains called the Alps.|Switzerland is famous for yummy chocolate and cheese.|The Matterhorn in Switzerland is a pointy mountain that looks like a giant pyramid.|Swiss cuckoo clocks have little birds that pop out and sing!
+UA|Ukraine's flag is blue and yellow, like the blue sky above golden wheat fields.|Ukraine has fields of golden wheat and bright yellow sunflowers.|Kyiv, the capital of Ukraine, has churches with sparkling golden domes.|In Ukraine, people paint pretty patterns on eggs. They are called pysanky.
+RU|Russia is the biggest country in the whole world!|Lake Baikal in Russia is the deepest lake in the world.|Saint Basil's Cathedral in Moscow has colourful, swirly domes, like ice cream.|Russia has nesting dolls called matryoshka, with smaller dolls hiding inside!
+IT|Italy is shaped like a boot!|Pizza, pasta, and gelato all come from Italy.|In Venice, in Italy, the streets are water canals, and people ride in boats called gondolas.|The Leaning Tower of Pisa in Italy really does lean to one side!
+DE|Germany has fairy-tale castles, like Neuschwanstein, high up on a hill.|The Brothers Grimm wrote fairy tales like Hansel and Gretel in Germany.|Germany has Christmas markets with twinkly lights, gingerbread, and warm treats.|Germany has big forests, like the Black Forest, which is famous for cuckoo clocks.
+ID|Indonesia is made of thousands and thousands of islands.|Komodo dragons, the biggest lizards in the world, live in Indonesia.|Borobudur in Indonesia is a giant temple shaped like a stepped mountain.|Orangutans live in the rainforests of Indonesia.
+NZ|New Zealand has more sheep than people!|The kiwi, a fluffy round bird that cannot fly, lives in New Zealand.|New Zealand has hot, bubbling mud pools and geysers.|Hobbiton in New Zealand is a movie village with round doors in the hills.
+AU|Australia has kangaroos that hop and koalas that sleep in trees.|The Great Barrier Reef in Australia is a huge coral reef, so big you can see it from space.|The Sydney Opera House in Australia looks like big white sails.|Uluru in Australia is a giant red rock in the middle of the desert.
+AT|Mozart, who wrote lots of famous music, was born in Austria.|Austria has tall mountains, and people love skiing and hiking there.|In Vienna, in Austria, white horses called Lipizzaners learn to dance.|Schönbrunn Palace in Vienna has the oldest zoo in the world.
+PL|Poland has a castle in Kraków with a legend about a dragon who lived under the hill.|Bison, huge furry animals, live in a forest in Poland.|Poland has a salt mine with sculptures made completely out of salt!|Pierogi, yummy dumplings, come from Poland.
+AF|Afghanistan has tall mountains and sweet, juicy pomegranates.|Flying kites is a favourite game in Afghanistan.|Snow leopards live in the high, snowy mountains of Afghanistan.|Afghan hounds, fluffy dogs with long silky hair, are named after Afghanistan.
+AL|Albania has sparkly blue sea beaches called the Albanian Riviera.|The town of Berat in Albania is nicknamed the town of a thousand windows.|Albania's flag is red with a black two-headed eagle.|Butrint, in Albania, is an ancient city surrounded by forest and water.
+DZ|Algeria is the biggest country in Africa.|Part of the giant Sahara Desert, with huge sand dunes, is in Algeria.|Tiny fennec foxes with giant ears live in the Sahara Desert in Algeria.|Timgad, in Algeria, is an ancient Roman city with tall stone arches.
+AD|Andorra is a tiny country high up in the Pyrenees mountains.|People in Andorra love skiing in the snow.|Andorra la Vella, the capital of Andorra, is one of the highest capital cities in Europe.|Andorra has a big spa called Caldea, with warm, bubbly pools.
+AO|Angola has the tall Kalandula Falls, a big thundering waterfall.|Giant sable antelopes, with big curved horns, live in Angola.|Giant baobab trees grow in Angola.|Many people in Angola speak Portuguese.
+AG|Antigua is said to have a beach for every day of the year.|Barbuda, next to Antigua, has pink sand beaches!|Antigua has an old harbour called Nelson's Dockyard, with tall sailing ships.|Antigua and Barbuda is a country made of two main islands, and lots of little ones.
+AM|Armenia has snowy Mount Ararat looking over it.|The apricot is the favourite fruit of Armenia.|The Armenian alphabet has 38 letters that look like pretty curls.|Armenia has a very long cable car, called the Wings of Tatev, that flies over a deep valley.
+AZ|Baku, in Azerbaijan, has three towers shaped like flames.|Azerbaijan has mud volcanoes that bubble and plop.|Azerbaijan is nicknamed the Land of Fire.|In Baku, in Azerbaijan, a museum is shaped like a giant rolled-up carpet.
+BS|In the Bahamas, there are swimming pigs on a beach!|Harbour Island in the Bahamas has pink sand.|The Bahamas is made of about seven hundred islands.|The flamingo is the national bird of the Bahamas.
+BH|Bahrain is a small island country that is famous for pearls.|Bahrain has a lonely Tree of Life growing in the desert, for hundreds of years.|Bahrain has a very old fort by the sea, called Qal'at al-Bahrain.|Bahrain is made of lots of islands, and the biggest one is also called Bahrain.
+BD|Royal Bengal tigers live in the Sundarbans forest in Bangladesh.|Cox's Bazar in Bangladesh has one of the longest beaches in the world.|In Dhaka, in Bangladesh, rickshaws are painted with bright, colourful pictures.|Bangladesh has so many rivers that people travel on little boats.
+BB|Barbados is called the land of the flying fish.|Barbados has warm beaches where sea turtles swim.|Harrison's Cave in Barbados is full of sparkly rock icicles.|Green monkeys live in Barbados.
+BY|Belarus has a forest where European bison live.|Belarus has fairy-tale castles like Mir Castle.|Belarus has so many lakes that it is called the land of blue lakes.|Storks build giant nests on rooftops in Belarus.
+BE|Belgium is famous for yummy chocolate and waffles.|Belgium has a giant silver building called the Atomium that looks like shiny balls joined together.|The Grand Place, a square in Brussels in Belgium, has golden buildings that sparkle.|People in Belgium love fries, and eat them with mayonnaise.
+BZ|Belize has a giant round hole in the sea called the Great Blue Hole.|Belize has a long coral reef full of colourful fish.|Belize has ancient Mayan pyramids hidden in the jungle.|Jaguars live in the forests of Belize.
+BJ|Benin has a village called Ganvié that is built on stilts in a lake.|Elephants and lions live in Pendjari National Park in Benin.|Abomey, in Benin, has royal palaces decorated with carvings of animals.|Many people in Benin speak French.
+BT|Bhutan has a monastery clinging to a cliff, called Tiger's Nest.|Bhutan's flag has a thunder dragon on it.|Bhutan measures happiness, as well as money!|Archery is the national sport of Bhutan.
+BO|Bolivia has the biggest salt flat in the world, which looks like a giant mirror after it rains.|Pink flamingos live at a red lake in Bolivia.|La Paz, in Bolivia, has cable cars that glide over the city high in the mountains.|On Lake Titicaca, a very high lake shared by Bolivia and Peru, people sail boats made of reeds.
+BA|Bosnia and Herzegovina has an old stone bridge in Mostar called Stari Most.|Bosnia and Herzegovina has pretty waterfalls where people swim.|Bosnia and Herzegovina has green mountains and rivers where people go rafting.|In Sarajevo, in Bosnia and Herzegovina, craftspeople hammer shiny copper coffee pots.
+BW|Botswana has the Okavango Delta, where elephants wade through the water.|Botswana has more elephants than almost anywhere else in the world.|The Kalahari Desert covers a big part of Botswana.|The money in Botswana is called the pula, which means rain.
+BR|Brazil has the Amazon, the biggest rainforest in the world.|Brazil has a big colourful party called Carnival, with music and dancing.|Brazil has won the football World Cup five times.|Colourful toucans and parrots fly in the forests of Brazil.
+BN|Brunei has a village built on stilts over the water, called Kampong Ayer.|Brunei has a mosque with shiny golden domes.|Proboscis monkeys, with big noses, live in the rainforests of Brunei.|Brunei is on an island called Borneo.
+BG|Bulgaria is famous for roses, and people make sweet rose oil there.|Bulgaria has seven lakes high up in the mountains.|In Bulgaria, people nod for no and shake their heads for yes!|The Rila Monastery in Bulgaria is a striped, colourful building in the mountains.
+BF|Burkina Faso has pointy rocky peaks at Sindou.|Burkina Faso has a big mud mosque in the town of Bobo-Dioulasso.|Elephants live in Arly National Park in Burkina Faso.|The name Burkina Faso means land of honest people.
+BI|Burundi sits next to Lake Tanganyika, one of the deepest lakes in the world.|Burundi is famous for drummers who dance while they play big drums.|Hippos live along the shore of Lake Tanganyika in Burundi.|Burundi is a small country with lots of green hills.
+CV|Cabo Verde is a group of islands in the Atlantic Ocean.|Cabo Verde has a volcano called Pico do Fogo.|Morna is a soft, dreamy kind of music from Cabo Verde.|Sea turtles lay their eggs on the beaches of Cabo Verde.
+KH|Angkor Wat in Cambodia is the biggest temple in the world, covered in carvings.|Cambodia has a huge lake with floating villages.|Angkor Wat is so special that it is on the flag of Cambodia.|At Ta Prohm, in Cambodia, giant tree roots hug an old stone temple.
+CM|Cameroon is called Africa in miniature, because it has beaches, mountains, and forests.|Mount Cameroon is a volcano in Cameroon.|Cameroon's football team is called the Indomitable Lions.|Chimpanzees and gorillas live in the rainforests of Cameroon.
+CA|Canada has lots of lakes and forests, and moose.|Maple trees in Canada give us sweet maple syrup.|Canada is the second biggest country in the world.|The beaver is one of the national animals of Canada.
+CF|Forest elephants and gorillas live in a rainforest in the Central African Republic.|The Boali Falls, near the capital city, are a big waterfall.|Elephants gather in forest clearings in the Dzanga-Sangha forest, in the Central African Republic.|The Central African Republic is right in the middle of Africa.
+TD|Lake Chad is a big lake near the Sahara Desert.|Elephants live in Zakouma National Park in Chad.|Chad has giant stone arches in the Ennedi desert.|Chad is named after Lake Chad.
+CO|Colombia has a river called Caño Cristales that looks like a rainbow.|Colombia grows lots of coffee, and has very tall wax palm trees.|Colombia has more kinds of birds than almost any other country.|Cartagena, in Colombia, has old houses painted in bright colours.
+KM|Comoros is a group of islands with a volcano called Karthala.|Comoros grows ylang-ylang flowers that smell lovely.|Comoros is nicknamed the Perfume Islands, because of its sweet-smelling flowers.|An ancient fish called the coelacanth swims near Comoros.
+CG|The Republic of the Congo has gorillas in its rainforest.|Brazzaville, its capital, sits next to the big Congo River.|In the Congo, some people dress up in bright, fancy suits and are called sapeurs.|French is spoken in the Republic of the Congo.
+CD|The Congo River is very big and very long. It flows through DR Congo.|Rare mountain gorillas live in Virunga National Park.|Okapis, shy animals that look like a mix of a zebra and a giraffe, live in DR Congo.|DR Congo has the second biggest rainforest in the world.
+CR|Costa Rica has sloths that move super slowly in the trees.|Costa Rica has bright green frogs with big red eyes.|The name Costa Rica means rich coast.|Costa Rica has warm hot springs near a volcano called Arenal.
+CI|Côte d'Ivoire grows lots of cocoa beans, which are used to make chocolate.|Côte d'Ivoire has one of the biggest churches in the world.|Côte d'Ivoire's football team is called the Elephants.|Côte d'Ivoire is French for Ivory Coast.
+HR|Croatia has Plitvice Lakes, with turquoise water and lots of waterfalls.|Dalmatian dogs, with black spots, are named after a part of Croatia.|Croatia has more than a thousand islands.|In Dubrovnik, in Croatia, you can walk along giant old stone walls by the sea.
+CU|Cuba has colourful old cars from long ago.|Cuba is an island full of lively music and dancing.|The bee hummingbird, the smallest bird in the world, lives in Cuba.|Havana, in Cuba, has pretty old buildings in many colours.
+CY|In Cyprus, sea turtles come to the beaches.|Cyprus has a rock by the sea where a goddess was said to have risen from the waves.|Cyprus has mountains called Troodos, where it snows in winter.|Halloumi, a squeaky cheese you can grill, comes from Cyprus.
+CZ|Prague, in Czechia, has a clock where little figures move every hour.|Czechia has lots and lots of castles.|The Little Mole, a famous cartoon character, comes from Czechia.|Prague's Charles Bridge has lots of statues all along it.
+DK|LEGO bricks come from Denmark!|In Copenhagen, in Denmark, the Little Mermaid statue sits on a rock by the sea.|Copenhagen, in Denmark, has lots of bike lanes, and many people ride bicycles.|Tivoli Gardens, in Denmark, is a park with lights, rides, and flowers.
+DJ|Lake Assal in Djibouti is super salty.|Gentle whale sharks visit the sea near Djibouti.|Djibouti is a small, hot country by the Red Sea.|Djibouti has a land of strange volcanic rocks that looks a bit like the Moon.
+DM|Dominica is called the nature island, and has a Boiling Lake.|Dominica has lots of rainforest and waterfalls.|Dominica's flag has a purple parrot on it, called the Sisserou.|At Champagne Reef, in Dominica, bubbles rise up from the sea floor.
+DO|The Dominican Republic has beaches with swaying palm trees.|Humpback whales visit Samaná Bay in the Dominican Republic.|The Dominican Republic shares an island, called Hispaniola, with Haiti.|Baseball is a favourite game in the Dominican Republic.
+EC|Ecuador has the Galápagos Islands, where giant tortoises live.|Ecuador is named after the equator, which runs right through it.|Blue-footed boobies, birds with bright blue feet, live in the Galápagos Islands of Ecuador.|Quito, the capital of Ecuador, is one of the highest capital cities in the world.
+EG|Egypt has giant pyramids and the Sphinx, a huge statue with a lion's body.|The Nile, a very long river, flows through Egypt.|Long ago, people in Egypt loved cats and thought they were special.|Egypt has a sparkling Red Sea with colourful coral.
+SV|El Salvador has volcanoes and beaches for surfing.|El Salvador is the smallest country in Central America.|Lake Coatepeque is a sparkling blue lake inside an old volcano in El Salvador.|Pupusas, yummy stuffed tortillas, are the national dish of El Salvador.
+GQ|Equatorial Guinea has islands in the Atlantic Ocean covered in rainforest.|Forest elephants live in Equatorial Guinea.|Equatorial Guinea is the only country in Africa where people speak Spanish.|Part of Equatorial Guinea is on islands in the sea.
+ER|Asmara, the capital of Eritrea, has old, colourful buildings.|Eritrea has a coast on the Red Sea with coral islands.|A little steam train climbs up the mountains to Asmara in Eritrea.|Wild asses live in the hot Danakil desert in Eritrea.
+SZ|Eswatini is a small country in Africa where rhinos and hippos live.|Eswatini has a festival called the Reed Dance, with lots of dancers.|Eswatini was once called Swaziland.|At Mlilwane Park, in Eswatini, you can ride a bike past zebras.
+ET|Ethiopia has churches carved into rocks in a town called Lalibela.|According to a legend, coffee was first found in Ethiopia.|Ethiopia has its own calendar with thirteen months.|Gelada monkeys, with red hearts on their chests, live in Ethiopia.
+FJ|Fiji has more than three hundred islands.|Fiji has pretty coral reefs full of fish.|People in Fiji say Bula! to say hello.|Fiji has white sandy beaches and little thatched huts.
+GA|Gabon is covered mostly in rainforest.|In Gabon, elephants sometimes walk on the beach.|Gorillas and chimpanzees live in the forests of Gabon.|Hippos sometimes splash in the sea waves in Gabon.
+GM|The Gambia is a long, skinny country along the Gambia River.|Hippos and crocodiles live along the Gambia River.|The Gambia is the smallest country on the mainland of Africa.|Colourful birds called bee-eaters live in the Gambia.
+GE|Georgia the country has tall mountains called the Caucasus.|Georgia has a yummy cheese bread called khachapuri.|The Georgian alphabet has curly letters that look like swirls.|Vardzia, in Georgia, is a city carved into a cliff.
+GH|Ghana has colourful woven cloth called kente.|Ghana has a park with a bridge high up in the treetops.|Ghana's flag has a black star in the middle.|Lake Volta in Ghana is one of the biggest man-made lakes in the world.
+GR|Greece has white houses with blue roofs on the island of Santorini.|The Parthenon in Athens is a very old temple on a hill.|The first Olympic Games began in Greece, a very long time ago.|Greece has thousands of islands.
+GD|Grenada is called the Spice Island because nutmeg grows there.|Grenada has statues in the sea at an underwater sculpture park.|Grenada's flag has a nutmeg on it.|Grand Anse beach, in Grenada, has soft golden sand.
+GT|Guatemala has ancient pyramids in the jungle at Tikal.|Lake Atitlán in Guatemala sits among volcanoes.|The quetzal, a bird with a super long green tail, is the national bird of Guatemala.|Antigua Guatemala is a town with colourful buildings and a volcano behind it.
+GN|The Niger River begins in the hills of Guinea.|Chimpanzees live in the forests of Guinea.|The djembe, a big drum played with the hands, comes from West Africa, including Guinea.|Guinea has hills with lots of waterfalls.
+GW|Guinea-Bissau has islands where hippos swim in the sea.|Sea turtles lay their eggs on the beaches of Guinea-Bissau.|Guinea-Bissau has a colourful Carnival, with masks and dancing.|People in Guinea-Bissau speak Portuguese.
+GY|Guyana has Kaieteur Falls, one of the tallest waterfalls in the world.|Giant otters and jaguars live in Guyana.|Guyana is the only country in South America where people speak English.|The name Guyana means land of many waters.
+HT|Haiti has colourful painted buses called tap-taps.|Haiti has a giant mountain fortress called the Citadelle.|Haiti is famous for bright, colourful paintings.|Bassin Bleu, in Haiti, has blue pools you can swim in.
+HN|Honduras has an ancient Mayan city called Copán with lots of carvings.|Honduras has coral reefs near the island of Roatán.|Scarlet macaws, big red parrots, fly near Copán in Honduras.|Honduras has white sand beaches by the Caribbean Sea.
+HU|Hungary has a huge Parliament building that lights up beside the Danube River.|Hungary has warm bath pools called thermal baths.|The Rubik's Cube was invented in Hungary.|Lake Balaton, in Hungary, is the biggest lake in central Europe.
+IS|Iceland has geysers that shoot hot water into the air.|Iceland has volcanoes, glaciers, and puffins.|Colourful lights called the Northern Lights dance in the sky above Iceland.|The Blue Lagoon in Iceland is a warm milky-blue pool in the middle of black rocks.
+IR|Iran has beautiful mosques covered in blue and turquoise tiles.|Persian cats are named after Persia, which is now Iran.|Persepolis, in Iran, is an ancient city with tall stone columns.|Pistachio nuts grow in Iran.
+IQ|Iraq is where some of the world's first cities began.|The Tigris and Euphrates rivers flow through Iraq.|Long ago, people in Iraq were among the first to write things down.|Date palm trees grow along the rivers in Iraq.
+IE|Ireland is called the Emerald Isle because it is so green.|Ireland has tall cliffs by the sea called the Cliffs of Moher.|In Irish stories, little leprechauns hide pots of gold at the end of the rainbow.|The harp is the symbol of Ireland.
+IL|The Dead Sea in Israel is so salty that you float easily.|Israel has a very old fortress on a mountain called Masada.|Israel has a giant crater in the desert called the Ramon Crater.|Cherry tomatoes were first grown by farmers in Israel.
+JM|Jamaica has waterfalls you can climb, called Dunn's River Falls.|Reggae music, like Bob Marley's, comes from Jamaica.|Usain Bolt, the fastest runner in the world, comes from Jamaica.|The Blue Mountains in Jamaica grow yummy coffee.
+JO|Jordan has a city carved into pink rock called Petra.|Jordan has a red desert called Wadi Rum.|You can float in the Dead Sea on the border of Jordan.|Wadi Rum, in Jordan, is a red desert where movies about Mars were filmed.
+KZ|Kazakhstan is the biggest country in the world with no coast.|People in Kazakhstan have ridden horses for a very long time.|Rockets blast off into space from a place called Baikonur, in Kazakhstan.|Wild apples grow in the forests near Almaty, in Kazakhstan.
+KE|Kenya has the Maasai Mara, where lions, zebras, and giraffes roam.|Every year, millions of wildebeest cross the Mara River in Kenya.|Thousands of pink flamingos gather at Lake Nakuru in Kenya.|Many fast runners come from Kenya.
+KI|Kiribati is made of low coral islands in the Pacific Ocean.|Kiritimati, in Kiribati, is one of the first places to welcome each New Year.|Kiribati is made of thirty-three islands.|Kiribati is the only country in the world that is in all four halves of the Earth, north, south, east and west.
+KP|Mount Paektu in North Korea has a big lake inside its volcano crater.|North Korea is on the Korean Peninsula, right next to South Korea.|Kumgang Mountain, in North Korea, has sharp rocky peaks and waterfalls.|Pyongyang, the capital of North Korea, has a very tall, pointy, pyramid-shaped building called Ryugyong.
+KW|Kuwait has three tall, pointy towers by the sea.|Kuwait is a warm, sunny country by the Gulf.|The Grand Mosque in Kuwait has a huge golden dome.|Kuwait is a very hot country, with lots of sand.
+KG|Kyrgyzstan has a big mountain lake called Issyk-Kul that almost never freezes.|In Kyrgyzstan, people live in round felt tents called yurts.|Eagle hunters in Kyrgyzstan train big eagles to fly and come back.|Kyrgyzstan is almost all mountains.
+LA|Laos has pretty waterfalls with turquoise pools.|Laos is called the land of a million elephants.|Sticky rice is a favourite food in Laos.|In Luang Prabang, in Laos, monks in orange robes walk through the town at sunrise.
+LV|Latvia has lots of forests and sandy beaches.|Riga, in Latvia, has fancy buildings with faces and flowers carved on them.|Latvians love to sing, and thousands of singers gather at big song festivals.|Gauja National Park, in Latvia, has forests, cliffs, and caves.
+LB|Lebanon has an old cedar tree on its flag.|Baalbek in Lebanon has giant old stone columns.|Jeita Grotto, in Lebanon, is a sparkly cave you can visit by boat.|In Lebanon, you can swim in the sea and see snowy mountains on the same day.
+LS|Lesotho is a country completely surrounded by South Africa.|People in Lesotho wear warm, colourful blankets in the mountains.|All of Lesotho is high up in the mountains, so it is called the kingdom in the sky.|People in Lesotho ride sturdy little ponies in the mountains.
+LR|Liberia has rainforests where little pygmy hippos live.|Liberia has long sandy beaches where people surf.|Liberia's flag has red and white stripes, a bit like the flag of the United States.|Liberia has palm trees all along its beaches.
+LY|Libya has huge sand dunes in the Sahara Desert.|Libya has ancient Roman city ruins by the sea.|Ghadames, in Libya, is an old desert town with white mud houses.|Libya has oases, green spots with palm trees in the middle of the desert.
+LI|Liechtenstein is one of the smallest countries in the world.|Vaduz Castle sits high on a hill above the capital of Liechtenstein.|You can walk across Liechtenstein in just a day.|About forty thousand people live in Liechtenstein.
+LT|Lithuania has a castle on an island in a lake.|Lithuania has giant sand dunes at a place called the Curonian Spit.|Amber, a shiny orange stone made from tree sap, washes up on the beaches of Lithuania.|Hot air balloons float over the city of Vilnius, in Lithuania.
+LU|Luxembourg is a small country with lots of castles.|Luxembourg is surrounded by Belgium, France, and Germany.|The Bock tunnels in Luxembourg are a maze of old tunnels under the city.|Luxembourg is one of the smallest countries in Europe.
+MG|Lemurs live only in Madagascar and a few nearby islands.|Madagascar has baobab trees that look like upside-down trees.|Madagascar is the fourth biggest island in the world.|Vanilla, used in ice cream, grows in Madagascar.
+MW|Lake Malawi is full of colourful fish.|Malawi is nicknamed the warm heart of Africa.|Lake Malawi has more kinds of fish than any other lake in the world.|Hippos splash in the Shire River in Malawi.
+MY|The Petronas Towers in Malaysia are two tall twin towers.|Orangutans live in the rainforests of Malaysian Borneo.|Rafflesia, the biggest flower in the world, grows in the rainforests of Malaysia.|Satay, tasty little sticks of grilled meat, is a favourite food in Malaysia.
+MV|The Maldives has islands surrounded by clear turquoise water.|The Maldives is the lowest country in the world, with very flat islands.|The Maldives is made of more than a thousand tiny islands.|At night, some beaches in the Maldives glow with tiny sparkling sea creatures.
+ML|Mali has a big mosque made of mud in the town of Djenné.|Timbuktu in Mali was famous for its old libraries.|Mansa Musa, a famous king of Mali, was super duper rich.|The Dogon people of Mali live in houses built into tall cliffs.
+MT|Malta is a small island country in the Mediterranean Sea.|Malta has a sparkling blue sea cave called the Blue Grotto.|Malta has little colourful fishing boats called luzzu.|Valletta, the capital of Malta, has golden stone buildings.
+MH|The Marshall Islands has coral islands shaped like rings, called atolls.|Fish and sea turtles swim around the reefs of the Marshall Islands.|Long ago, sailors in the Marshall Islands used maps made of sticks and shells.|The Marshall Islands has lots and lots of tiny islands.
+MR|Mauritania has a giant round pattern in the Sahara called the Eye of the Sahara.|Camels walk across the deserts of Mauritania.|Chinguetti, in Mauritania, is a desert town with an old library.|One of the longest trains in the world carries iron across the desert in Mauritania.
+MU|The dodo, a big bird that cannot fly, once lived in Mauritius.|Mauritius has sand in seven different colours.|Mauritius has a sandy spot under the sea that looks like an underwater waterfall.|Pink pigeons, very rare birds, live in Mauritius.
+MX|Mexico has a giant stepped pyramid at Chichen Itza.|Tacos and chocolate come from Mexico.|Piñatas full of sweets are a big part of parties in Mexico.|Every winter, millions of monarch butterflies fly all the way to the forests of Mexico.
+FM|Micronesia has ships under the sea at Chuuk Lagoon for divers to explore.|Pohnpei, in Micronesia, has rainforest and waterfalls.|Nan Madol, in Micronesia, is an ancient city built on little islands in the sea.|Micronesia is made of more than six hundred islands.
+MD|Moldova has a monastery carved into a cliff.|Moldova has fields of sunflowers and grapes.|Moldova has the biggest wine cellar in the world, with tunnels as long as roads.|Moldova is a small country with lots of rolling green hills.
+MC|Monaco is one of the smallest countries in the world.|Monaco has a famous car race through its streets.|Monaco is only about two square kilometres big.|At Monaco's palace, guards in white uniforms change shifts every day.
+MN|Mongolia has big grasslands where children ride horses.|People in Mongolia live in round tents called gers.|Naadam is a big festival in Mongolia with wrestling, horse racing, and archery.|Dinosaur eggs were found in the Gobi Desert in Mongolia.
+ME|Montenegro has a bay with mountains all around it, called the Bay of Kotor.|Montenegro's name means Black Mountain.|Tara Canyon, in Montenegro, is the deepest canyon in Europe.|Sveti Stefan is a little island village in Montenegro, joined to land by a thin strip of sand.
+MA|Morocco has a blue city called Chefchaouen.|In Morocco, you can ride camels in the Sahara Desert.|Goats climb argan trees in Morocco to nibble the fruit!|Marrakech, in Morocco, has a huge market square with storytellers and fresh orange juice.
+MZ|Mozambique has beaches where dolphins and whale sharks swim.|Lions and elephants live in Gorongosa Park in Mozambique.|Cashew nuts grow in Mozambique.|People in Mozambique speak Portuguese.
+MM|Myanmar has a golden pagoda that sparkles, called Shwedagon.|Fishermen on Inle Lake in Myanmar row their boats with one leg!|Bagan, in Myanmar, has thousands of old temples across a flat plain.|In Myanmar, many people paint a yellow paste called thanaka on their faces.
+NA|Namibia has tall red sand dunes at a place called Sossusvlei.|Desert elephants live in Namibia.|Etosha Park in Namibia has a giant white salt pan that you can see from space.|Fish River Canyon in Namibia is one of the biggest canyons in the world.
+NR|Nauru is the smallest island nation in the world.|You can drive all the way around Nauru in just a few minutes.|Nauru has about ten thousand people.|Nauru is a single small island, with a road all the way around it.
+NP|Mount Everest, the tallest mountain in the world, is in Nepal.|Nepal's flag is the only one in the world that is not a rectangle.|Colourful prayer flags flutter in the mountain breeze in Nepal.|Rhinos with one horn live in Chitwan Park in Nepal.
+NL|The Netherlands has fields of tulips and lots of windmills.|Lots and lots of people ride bicycles in the Netherlands.|Much of the Netherlands is below sea level, kept dry by big walls called dikes.|Wooden shoes called clogs come from the Netherlands.
+NI|Nicaragua has an island with two volcanoes in a big lake.|Granada in Nicaragua has colourful old buildings.|People can slide down the side of a volcano on a board, in Nicaragua.|Nicaragua is called the land of lakes and volcanoes.
+NE|Niger has the Sahara Desert and the Niger River.|Giraffes live in Niger.|Niger has dinosaur fossils buried in its desert.|Agadez, in Niger, has a tall mud mosque that you can climb.
+NG|Nigeria has a giant rock called Zuma Rock.|Nigeria is full of music and colourful clothes.|Nigeria has more people than any other country in Africa.|Nollywood, in Nigeria, makes lots and lots of films.
+MK|North Macedonia has a deep, clear lake called Lake Ohrid.|Matka Canyon in North Macedonia has a lake where you can go boating.|Skopje, the capital of North Macedonia, has lots of statues, including a giant one of a warrior on a horse.|North Macedonia has snowy mountains and hot summers.
+OM|Oman has old forts and golden sand dunes.|Frankincense, a sweet-smelling resin, comes from trees in Oman.|Sea turtles lay their eggs at a beach called Ras al Jinz in Oman.|Oman has wadis, cool pools of water hidden in the desert.
+PK|Pakistan has K2, the second tallest mountain in the world.|Trucks in Pakistan are painted in bright, colourful patterns.|Cricket is a favourite game in Pakistan.|The Hunza valley in Pakistan is covered in pink apricot blossoms in spring.
+PW|Palau has a Jellyfish Lake where you can swim with jellyfish that do not sting.|The Rock Islands of Palau look like green mushrooms in the sea.|When visitors come to Palau, they promise the children of Palau to look after nature.|Palau has a lagoon with soft white mud that people smear on their skin.
+PS|Palestine has Jericho, one of the oldest towns in the world.|Olive trees grow in Palestine, and olive oil is yummy.|Palestinian dresses are covered in beautiful embroidered patterns.|Hummus and falafel are yummy foods eaten in Palestine.
+PA|Panama has a canal where ships sail between two oceans.|Colourful toucans live in the forests of Panama.|Panama's San Blas islands are tiny islands with palm trees.|Panama City has a jungle right next to its tall buildings.
+PG|Birds of paradise, with beautiful feathers, live in Papua New Guinea.|People in Papua New Guinea speak hundreds of different languages.|Tree kangaroos, which climb trees, live in Papua New Guinea.|Papua New Guinea is on an island called New Guinea.
+PY|Paraguay is a country with no sea coast, but it has big rivers.|People in Paraguay speak both Spanish and Guaraní.|Paraguay is famous for lace called ñandutí that looks like a spider's web.|Paraguay has one of the biggest dams in the world, called Itaipu, which it shares with Brazil.
+PE|Machu Picchu in Peru is an ancient city high in the clouds.|Llamas and alpacas live in the mountains of Peru.|Peru has thousands of kinds of potatoes, in purple, yellow, and red.|Rainbow Mountain, in Peru, has stripes of many colours.
+PH|The Chocolate Hills in the Philippines look like giant chocolate drops.|The Philippines is made of more than seven thousand islands.|Tiny tarsiers, with giant eyes, live in the Philippines.|The Philippines has an underground river that you can ride through in a boat.
+PT|Portugal has old yellow trams that rattle up the hills of Lisbon.|Little custard tarts called pastéis de nata come from Portugal.|Surfers ride giant waves at a place called Nazaré, in Portugal.|Cork, which is used to make bottle stoppers, comes from trees in Portugal.
+QA|Qatar has sand dunes that run right down to the sea.|People in Qatar love falcons.|Qatar hosted the football World Cup in 2022.|Doha, the capital of Qatar, has tall skyscrapers right by the sea.
+RO|Romania has a road that twists like a snake across the mountains.|Brown bears live in the forests of Romania.|The Danube Delta in Romania is full of pelicans and other birds.|Peleș Castle, in Romania, looks like a fairy-tale castle in the mountains.
+RW|Rwanda is called the land of a thousand hills.|Mountain gorillas live in Rwanda.|Golden monkeys live in the forests of Rwanda.|Kigali, the capital of Rwanda, is a very clean city.
+KN|Saint Kitts and Nevis is the smallest country in the Americas.|Green monkeys live on the islands of Saint Kitts and Nevis.|Brimstone Hill is a big old fortress on a hill in Saint Kitts.|A little train used to carry sugar canes around the island of Saint Kitts, and now carries visitors.
+LC|Saint Lucia has two pointy mountains rising out of the sea, called the Pitons.|Saint Lucia has a volcano with bubbling mud pools.|The Saint Lucia parrot is a bright green and blue bird.|Saint Lucia is named after a saint called Lucy.
+VC|Saint Vincent and the Grenadines has lots of little islands to sail between.|Sea turtles swim at the Tobago Cays.|Saint Vincent has a volcano called La Soufrière.|Some of the Pirates of the Caribbean films were filmed in Saint Vincent.
+WS|Samoa has a swimming hole in the ground, called To Sua Ocean Trench.|Samoa is one of the first countries to see each new day.|In 2011, Samoa skipped a whole day so that it could join the other side of the date line!|In Samoa, dancers twirl blazing fire knives.
+SM|San Marino is one of the smallest countries in the world, on top of a mountain.|San Marino has three towers on a hilltop.|San Marino is one of the oldest countries in the world.|San Marino sits on the top of Mount Titano.
+ST|São Tomé and Príncipe grows cocoa for chocolate.|São Tomé and Príncipe has a tall pointy rock called Pico Cão Grande.|São Tomé and Príncipe is made of two islands near the equator.|Rainforest covers lots of São Tomé and Príncipe.
+SA|Saudi Arabia has a huge desert where camels walk.|A tall tower in Riyadh has a big hole in the middle.|Camel racing is a favourite sport in Saudi Arabia.|Al-Ula, in Saudi Arabia, has tombs carved into giant rocks.
+SN|Senegal has a pink lake called Lake Retba!|Thousands of pelicans visit Djoudj Park in Senegal.|Wrestling is a favourite sport in Senegal.|Giant baobab trees grow in Senegal.
+RS|Serbia has a big fortress where two rivers meet.|Serbia grows lots of raspberries.|Serbia has a wooden village called Drvengrad, with little log houses.|The Iron Gates is a giant gorge on the Danube River in Serbia.
+SC|Seychelles has giant granite boulders on its beaches.|Giant tortoises live in Seychelles.|The coco de mer, a giant double coconut, grows only in Seychelles.|Seychelles has pink-tinged sand on some beaches.
+SL|Chimpanzees live at a sanctuary in Sierra Leone.|Sierra Leone has lovely beaches near its capital, Freetown.|The name Sierra Leone means lion mountains.|Monkeys live in the rainforest on Tiwai Island in Sierra Leone.
+SK|Slovakia has lots of castles, like Spiš Castle.|Slovakia has the High Tatras, mountains with lakes.|Bratislava Castle in Slovakia looks like an upside-down table with four towers.|Slovakia has icy caves under the mountains.
+SI|Lake Bled in Slovenia has a tiny island with a church.|Slovenia has huge caves, like Postojna Cave.|Predjama Castle, in Slovenia, is built right into the mouth of a cave.|People in Slovenia paint pictures on their beehives.
+SB|The Solomon Islands has colourful coral reefs for snorkelling.|The Solomon Islands is made of almost a thousand islands.|Marovo Lagoon, in the Solomon Islands, is one of the biggest saltwater lagoons in the world.|People in the Solomon Islands play music on panpipes.
+SO|Somalia has the longest coastline in mainland Africa.|Camels are very important in Somalia.|Somalia has beaches with white sand along the Indian Ocean.|Frankincense, a sweet-smelling resin, comes from trees in Somalia.
+ZA|Table Mountain in South Africa has a flat top, like a table.|Penguins live on the beaches near Cape Town.|South Africa has three capital cities.|Lions, elephants, and rhinos live in Kruger Park in South Africa.
+SS|The Nile River flows through South Sudan.|South Sudan has one of the biggest animal migrations in the world.|South Sudan is the newest country in the world, born in 2011.|South Sudan has the Sudd, one of the biggest swamps in the world.
+LK|Sri Lanka has a giant rock fortress called Sigiriya.|Sri Lanka grows lots of tea and has many elephants.|Blue whales, the biggest animals in the world, swim near Sri Lanka.|A little blue train winds through the green tea hills in Sri Lanka.
+SD|Sudan has more pyramids than Egypt!|In Khartoum, in Sudan, two parts of the Nile River meet.|Date palm trees grow along the Nile in Sudan.|Sudan has a Red Sea coast with colourful coral.
+SR|Suriname is covered by rainforest.|Paramaribo, in Suriname, has wooden buildings from long ago.|Suriname is the smallest country in South America.|Sloths and jaguars live in the rainforests of Suriname.
+SE|Every winter, Sweden builds a hotel made of ice!|Sweden has moose, and people wear flowers in their hair at Midsummer.|IKEA, a shop that sells furniture, comes from Sweden.|Pippi Longstocking, a girl who is super strong, was dreamed up by a writer from Sweden.
+SY|Syria has an ancient desert city called Palmyra with tall columns.|Syria has a giant old castle called Krak des Chevaliers.|Damascus, in Syria, is one of the oldest cities in the world.|Damascus roses, which smell lovely, come from Syria.
+TW|Taipei 101, in Taiwan, is a tall tower shaped like bamboo.|Bubble tea was invented in Taiwan!|Taiwan has night markets full of yummy snacks.|Sun Moon Lake, in Taiwan, is a beautiful lake surrounded by mountains.
+TJ|Tajikistan has huge mountains called the Pamirs, nicknamed the roof of the world.|Tajikistan has lakes with turquoise water.|Marco Polo sheep, with giant curly horns, live in Tajikistan.|Tajikistan has one of the longest glaciers in the world outside the poles.
+TZ|Mount Kilimanjaro in Tanzania is the tallest mountain in Africa.|Zebras and wildebeest travel across the Serengeti in Tanzania.|Zanzibar, in Tanzania, is called the Spice Island.|Ngorongoro Crater, in Tanzania, is a giant bowl full of wild animals.
+TH|Thailand has friendly elephants and shiny golden temples.|At Songkran, the Thai New Year, people have big water fights!|Floating markets in Thailand sell fruit from little boats.|At Loy Krathong in Thailand, people float little lanterns on the water.
+TL|Timor-Leste shares an island with Indonesia.|An old story says the island of Timor was shaped like a giant crocodile.|Timor-Leste grows lots of coffee.|Whales and dolphins swim past the coast of Timor-Leste.
+TG|Togo has clay tower-houses in a place called Koutammakou.|Togo has sandy beaches by the Gulf of Guinea.|Lomé, the capital of Togo, sits right by the sea.|Togo is a long, thin country.
+TO|Humpback whales visit Tonga every year.|Tonga is made of lots of islands.|Tonga is the only kingdom in the Pacific Ocean.|Blowholes on the coast of Tonga shoot sea water high into the air.
+TT|Trinidad and Tobago is where the steelpan, a musical drum made from oil barrels, was invented.|Trinidad has a lake made of sticky black tar, called Pitch Lake.|Carnival in Trinidad and Tobago has dancers in feathers and sparkly costumes.|Buccoo Reef, in Tobago, is full of colourful fish.
+TN|Tunisia has an ancient Roman arena at El Djem.|Sidi Bou Said, in Tunisia, is a blue and white village.|Scenes from Star Wars were filmed in the desert in Tunisia.|Carthage, in Tunisia, was an ancient city by the sea.
+TR|Hot air balloons float over Cappadocia in Türkiye.|Türkiye has white terraces filled with warm pools, called Pamukkale.|Istanbul, in Türkiye, is on two continents, Europe and Asia.|Turkish delight, a soft, sweet, sticky treat, comes from Türkiye.
+TM|Turkmenistan has a crater that glows with fire at night.|Turkmenistan is famous for Akhal-Teke horses, which shine like gold.|Turkmenistan is famous for big, beautiful carpets.|Ashgabat, the capital of Turkmenistan, has lots of white marble buildings.
+TV|Tuvalu is one of the smallest countries in the world.|Tuvalu is made of low coral islands.|About eleven thousand people live in Tuvalu.|Tuvalu's biggest island is a ring of land called Funafuti.
+UG|Mountain gorillas live in a forest in Uganda.|The Nile River begins in Uganda.|Murchison Falls, in Uganda, squeezes a whole river through a tiny gap.|Uganda is nicknamed the Pearl of Africa.
+AE|The Burj Khalifa in the United Arab Emirates is the tallest building in the world.|The Palm Jumeirah in the United Arab Emirates is an island shaped like a palm tree.|The Dubai Fountain in the United Arab Emirates dances to music.|The Louvre Abu Dhabi has a giant dome with sparkly light holes, like rain of light.
+UY|Colonia in Uruguay is a colourful old town with a lighthouse.|Sea lions live on the coast of Uruguay.|The first football World Cup was held in Uruguay in 1930.|People in Uruguay love to sip mate, a leafy tea.
+UZ|Uzbekistan has beautiful blue-tiled domes in the cities of Samarkand and Bukhara.|Long ago, travellers on the Silk Road passed through Uzbekistan.|The Registan, in Uzbekistan, is a huge square surrounded by blue-tiled buildings.|Plov, a rice dish, is a favourite food in Uzbekistan.
+VU|Vanuatu has a volcano called Mount Yasur that you can visit.|Vanuatu has blue holes in the jungle that you can swim in.|Bungee jumping began from the jumping towers of Vanuatu.|Vanuatu has an underwater post office!
+VA|Vatican City is the smallest country in the world.|The Pope lives in Vatican City.|Vatican City is inside the city of Rome.|The guards at Vatican City wear colourful striped uniforms.
+VE|Venezuela has Angel Falls, the tallest waterfall in the world.|Lake Maracaibo in Venezuela has lightning flashes almost every night.|Flat-topped mountains called tepuis rise out of the jungle in Venezuela.|Pink river dolphins swim in the Orinoco River in Venezuela.
+VN|Ha Long Bay in Vietnam has tall rocks that rise out of the sea.|Hoi An in Vietnam has streets full of glowing lanterns.|Pho, a noodle soup, is a favourite food in Vietnam.|Lots and lots of people ride motorbikes in Vietnam.
+YE|Socotra, in Yemen, has dragon's blood trees that look like umbrellas.|Yemen has tall mud-brick buildings in a city called Shibam.|Yemen is famous for its yummy honey.|The coffee called mocha is named after a port in Yemen.
+ZM|Victoria Falls, nicknamed the smoke that thunders, is on the border of Zambia.|Leopards live in South Luangwa Park in Zambia.|Lake Kariba is a giant lake shared by Zambia and Zimbabwe.|In Zambia, you can go on a walking safari to see wild animals.
+ZW|Zimbabwe has Victoria Falls, a gigantic waterfall.|Zimbabwe has an ancient stone city called Great Zimbabwe.|Matobo Hills, in Zimbabwe, has giant rocks balanced on top of each other.|Elephants walk through the woods at Mana Pools in Zimbabwe.
+XK|Kosovo has high mountains and a pretty town called Prizren by a river.|Kosovo has a big monument that is painted in new colours every year.|Kosovo is one of the youngest countries in Europe.|Rugova Canyon, in Kosovo, is a deep canyon in the mountains.
+`;
+const FACTS = {};
+FACTS_DATA.trim().split('\n').forEach(l => { const p = l.split('|'); FACTS[p[0]] = p.slice(1).map(s => s.trim()).filter(Boolean); });
+
+const SIZES = [
+  { max: 5e4, label: 'Very small', n: 1 },
+  { max: 5e5, label: 'Small', n: 2 },
+  { max: 3e6, label: 'Big', n: 3 },
+  { max: Infinity, label: 'Very big', n: 4 }
+];
+
+const flagSrc = (iso, w) => 'https://flagcdn.com/w' + w + '/' + iso.toLowerCase() + '.png';
+const flagImg = (iso, w, cls, alt) =>
+  '<img class="' + cls + '" loading="lazy" src="' + flagSrc(iso, w) + '" srcset="' + flagSrc(iso, w) + ' 1x, ' + flagSrc(iso, w * 2) + ' 2x" alt="' + esc(alt || '') + '">';
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+let toastTimer = null;
+function toast(text, ms) {
+  const t = $('#toast'); t.textContent = text; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms || 6000);
+}
+
+/* ---- reading aloud (the browser's built-in voice) ---- */
+const synth = window.speechSynthesis;
+let voice = null;
+function pickVoice() {
+  if (!synth) return;
+  const vs = synth.getVoices(); if (!vs.length) return;
+  const rank = v => {
+    const l = (v.lang || '').replace('_', '-'); let s;
+    if (/^en-SG/i.test(l)) s = 6; else if (/^en-GB/i.test(l)) s = 5; else if (/^en-AU/i.test(l)) s = 4;
+    else if (/^en-US/i.test(l)) s = 3; else if (/^en/i.test(l)) s = 2; else return -1;
+    if (/female|samantha|karen|moira|serena|kate|martha|fiona|tessa|aria|jenny|libby|sonia|natural|google uk english female|google us english/i.test(v.name)) s += 3;
+    if (/novelty|zarvox|bad news|bells|whisper|trinoids|boing|bubbles|cellos|deranged|good news|hysterical|jester|organ|superstar|albert|fred|junior|kathy|ralph/i.test(v.name)) s -= 10;
+    return s;
+  };
+  const best = vs.map(v => ({ v, s: rank(v) })).filter(x => x.s > 0).sort((a, b) => b.s - a.s)[0];
+  voice = best ? best.v : null;
+}
+if (synth) {
+  pickVoice();
+  if (synth.addEventListener) synth.addEventListener('voiceschanged', pickVoice); else synth.onvoiceschanged = pickVoice;
+}
+function say(text, done) {
+  if (!synth) { if (done) done(); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = 'en-GB';
+  u.rate = 0.88; u.pitch = 1.1;
+  if (done) { u.onend = done; u.onerror = done; }
+  synth.speak(u);
+}
+
+/* ---- sparkles when the unicorn lands ---- */
+function burst() {
+  const host = $('.globe-card'), em = window.THEME.sparkles.concat(window.THEME.traveller);
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('span'); s.className = 'bp'; s.textContent = em[i % em.length];
+    const a = Math.random() * Math.PI * 2, r = 80 + Math.random() * 130;
+    s.style.setProperty('--dx', Math.cos(a) * r + 'px'); s.style.setProperty('--dy', Math.sin(a) * r + 'px');
+    s.style.animationDelay = (Math.random() * 0.15) + 's';
+    host.appendChild(s); setTimeout(() => s.remove(), 1600);
+  }
+}
+
+/* ------------------------------------------------------------------
+   Country card
+------------------------------------------------------------------- */
+async function renderInfo(c) {
+  const wb = await Promise.race([state.wb, wait(1500).then(() => ({ area: {} }))]);
+  if (state.cur !== c) return;
+  const a = wb.area && wb.area[c.iso];
+  const km2 = a ? a.v : c.feats.reduce((s, f) => s + f.area, 0) * 12392;
+  const lvl = SIZES.find(s => km2 < s.max);
+  const dots = [1, 2, 3, 4].map(n => '<i class="' + (n <= lvl.n ? 'on' : '') + '"></i>').join('');
+  const list = (FACTS[c.iso] && FACTS[c.iso].length) ? FACTS[c.iso] : [c.name + ' is famous for ' + c.famous[0] + '.'];
+  $('#info').innerHTML =
+    '<div class="kc-head">' +
+      '<div class="kc-mid"><div class="kc-namerow">' + flagImg(c.iso, 40, 'kc-flag-sm', '') + '<button class="kc-name" id="nameBtn">' + esc(c.name) + '</button></div>' +
+      '<button class="size" id="sizeBtn" aria-label="How big"><span class="dots">' + dots + '</span><b>' + lvl.label + '</b></button></div>' +
+      '</div>' +
+    '<div class="facts" id="facts">' + list.map(f => '<div class="factcard">' + esc(f) + '</div>').join('') + '</div>' +
+    (list.length > 1 ? '<div class="fdots" id="fdots">' + list.map((_, i) => '<i class="' + (i ? '' : 'on') + '"></i>').join('') + '</div>' : '');
+  $('#nameBtn').addEventListener('click', () => say(c.name));
+  $('#sizeBtn').addEventListener('click', () => say(c.name + ' is ' + lvl.label.toLowerCase() + '!'));
+  const facts = $('#facts'); let idx = 0;
+  facts.addEventListener('scroll', () => {
+    const card = facts.firstElementChild, step = card.offsetWidth + 12;
+    idx = clamp(Math.round(facts.scrollLeft / step), 0, list.length - 1);
+    if (facts.scrollLeft + facts.clientWidth >= facts.scrollWidth - 2) idx = list.length - 1;
+    document.querySelectorAll('#fdots i').forEach((d, i) => d.classList.toggle('on', i === idx));
+  }, { passive: true });
+  const first = facts.firstElementChild;
+  if (first) { first.classList.add('hint'); setTimeout(() => first.classList.remove('hint'), 7000); }
+  let talkingEl = null;
+  facts.addEventListener('click', e => {                   // tap a fact card to hear it; tap again to stop
+    const card = e.target.closest('.factcard'); if (!card) return;
+    card.classList.remove('hint');
+    if (talkingEl === card) { talkingEl = null; card.classList.remove('talking'); if (synth) synth.cancel(); return; }
+    facts.querySelectorAll('.talking').forEach(x => x.classList.remove('talking'));
+    talkingEl = card; card.classList.add('talking');
+    const i = Array.prototype.indexOf.call(facts.children, card);
+    say(list[i], () => { card.classList.remove('talking'); if (talkingEl === card) talkingEl = null; });
+  });
+}
+
+/* ------------------------------------------------------------------
+   Pictures (Wikimedia Commons) - only the named famous things, with safety filters
+------------------------------------------------------------------- */
+const G = { items: [], i: 0, timer: null };
+const BAD = /\b(map|maps|flag|flags|coat of arms|emblem|logo|locator|location|stamp|diagram|poster|seal|banner|signature|chart|graph|icon|svg|pdf|screenshot|scan|document|postcard|coin|banknote|plan)\b/i;
+const UNSAFE = /\b(nude|nudes|nudity|naked|erotic|erotica|sex|sexual|porn|topless|bikini|lingerie|underwear|fetish|bdsm|genital|breast|breasts|prostitute|brothel|strip|stripper|cigarette|smoking|alcohol|drunk|beer|wine|whisky|vodka|gun|rifle|weapon|bomb|corpse|murder|killed|massacre|genocide|blood|gore|skull|cemetery|funeral|execution)\b/i;
+const UNSAFE_CAT = /nude|nudity|naked|erotic|sexual|porn|topless|bikini|lingerie|fetish|genital|prostitut|brothel|violence|corpse|gore|massacre|genocide|execution|torture|abuse|murder|dead people|war crime/i;
+const CAMERA = /^(IMG|DSC|DSCF|DSCN|DCIM|PXL|MVIMG|_MG|P\d)[\s_-]?\d/i;
+
+async function fetchSpec(spec, limit) {
+  const base = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&uselang=en&generator=search&gsrnamespace=6' +
+    '&prop=imageinfo%7Ccategories&iiprop=url%7Cmime%7Csize&iiurlwidth=960&cllimit=500';
+  try {
+    const r = await fetch(base + '&gsrlimit=' + limit + '&gsrsearch=' + encodeURIComponent(spec.q + ' -nude -naked -erotic filetype:bitmap'));
+    const j = await r.json();
+    return Object.values((j.query && j.query.pages) || {}).sort((x, y) => x.index - y.index).map(p => {
+      const ii = p.imageinfo && p.imageinfo[0];
+      if (!ii || !ii.thumburl || !/^image\/(jpeg|png)$/.test(ii.mime)) return null;
+      if (ii.width < 700 || ii.height < 450) return null;
+      const ar = ii.width / ii.height; if (ar < 0.6 || ar > 2.6) return null;
+      if (BAD.test(p.title) || UNSAFE.test(p.title)) return null;
+      if ((p.categories || []).some(x => UNSAFE_CAT.test(x.title))) return null;
+      let cap = p.title.replace(/^File:/, '').replace(/\.[a-z0-9]+$/i, '').replace(/_/g, ' ').trim();
+      if (spec.tag) cap = spec.tag; else if (CAMERA.test(cap)) cap = '';
+      return { title: p.title, url: ii.thumburl, page: ii.descriptionurl, cap, tag: spec.tag };
+    }).filter(Boolean);
+  } catch (e) { return []; }
+}
+function interleave(lists, max) {
+  const out = [], seen = new Set();
+  let k = 0, more = true;
+  while (out.length < max && more) {
+    more = false;
+    for (const list of lists) {
+      if (k < list.length) {
+        more = true;
+        const it = list[k];
+        if (!seen.has(it.title)) { seen.add(it.title); out.push(it); if (out.length >= max) break; }
+      }
+    }
+    k++;
+  }
+  return out;
+}
+async function fetchImages(c) {
+  const lists = await Promise.all(c.famous.map(f => fetchSpec({ q: f + ' ' + c.name, tag: f }, 10)));
+  let out = interleave(lists, 28);
+  if (out.length < 6) {                                   // rare: a country with few results
+    const extra = await fetchSpec({ q: c.name + ' landmark', tag: null }, 15);
+    out = interleave([out, extra], 28);
+  }
+  return out;
+}
+
+const mainImg = $('#main'), msg = $('#viewerMsg'), prevB = $('#prev'), nextB = $('#next'),
+      countEl = $('#count'), capText = $('#capText'), capLink = $('#capLink'), thumbs = $('#thumbs'),
+      playBtn = $('#playBtn');
+const thumbUrl = u => u.replace(/\/960px-/, '/250px-');
+
+function stopSlides() { clearInterval(G.timer); G.timer = null; playBtn.textContent = '▶'; }
+function toggleSlides() {
+  if (G.timer) return stopSlides();
+  playBtn.textContent = '⏸';
+  G.timer = setInterval(() => show(G.i + 1), 5000);
+}
+function galleryMessage(text) {
+  stopSlides();
+  G.items = []; thumbs.innerHTML = '';
+  mainImg.hidden = prevB.hidden = nextB.hidden = countEl.hidden = capLink.hidden = playBtn.hidden = true;
+  msg.hidden = false; msg.textContent = text; capText.innerHTML = '&nbsp;';
+}
+function setGallery(items) {
+  stopSlides();
+  G.items = items; G.i = 0;
+  if (!items.length) return galleryMessage('No pictures found for this place.');
+  msg.hidden = true; thumbs.innerHTML = '';
+  items.forEach((it, idx) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Picture ' + (idx + 1));
+    const im = document.createElement('img');
+    im.loading = 'lazy'; im.alt = ''; im.src = thumbUrl(it.url);
+    im.onerror = () => { if (im.src !== it.url) im.src = it.url; };
+    b.appendChild(im); b.addEventListener('click', () => { stopSlides(); show(idx); });
+    thumbs.appendChild(b);
+  });
+  show(0);
+}
+function show(i) {
+  const n = G.items.length; if (!n) return;
+  G.i = (i + n) % n;
+  const it = G.items[G.i], multi = n > 1;
+  mainImg.hidden = false; mainImg.src = it.url; mainImg.alt = it.cap;
+  prevB.hidden = nextB.hidden = playBtn.hidden = !multi; countEl.hidden = false;
+  countEl.textContent = (G.i + 1) + ' / ' + n;
+  capText.textContent = it.cap || ' '; capText.title = it.cap;
+  capLink.href = it.page; capLink.hidden = false;
+  [...thumbs.children].forEach((b, idx) => b.classList.toggle('on', idx === G.i));
+  const on = thumbs.children[G.i];
+  if (on) thumbs.scrollLeft = on.offsetLeft - (thumbs.clientWidth - on.clientWidth) / 2;
+  if (multi) { const nx = new Image(); nx.src = G.items[(G.i + 1) % n].url; }
+  if (lb.classList.contains('open')) lbUpdate();
+}
+mainImg.addEventListener('error', () => {
+  if (!G.items.length) return;
+  G.items.splice(G.i, 1);
+  setGallery(G.items.slice());
+});
+prevB.addEventListener('click', () => { stopSlides(); show(G.i - 1); });
+nextB.addEventListener('click', () => { stopSlides(); show(G.i + 1); });
+playBtn.addEventListener('click', toggleSlides);
+
+/* tap a picture to make it big */
+const lb = $('#lb'), lbimg = $('#lbimg');
+function lbUpdate() {
+  const it = G.items[G.i]; if (!it) return;
+  lbimg.onerror = () => { if (lbimg.src !== it.url) lbimg.src = it.url; };
+  lbimg.src = it.url.replace(/\/960px-/, '/1920px-'); lbimg.alt = it.cap;
+  $('#lbcap').textContent = it.cap ? it.cap + '  (' + (G.i + 1) + ' / ' + G.items.length + ')' : (G.i + 1) + ' / ' + G.items.length;
+  $('#lbp').hidden = $('#lbn').hidden = G.items.length < 2;
+}
+function lbOpen() { if (!G.items.length) return; stopSlides(); lb.classList.add('open'); lbUpdate(); }
+function lbClose() { lb.classList.remove('open'); lbimg.removeAttribute('src'); }
+mainImg.addEventListener('click', lbOpen);
+$('#lbx').addEventListener('click', lbClose);
+$('#lbp').addEventListener('click', () => show(G.i - 1));
+$('#lbn').addEventListener('click', () => show(G.i + 1));
+lb.addEventListener('click', e => { if (e.target === lb) lbClose(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && lb.classList.contains('open')) return lbClose();
+  if (document.activeElement === $('#q')) return;
+  if (e.key === 'ArrowLeft') show(G.i - 1);
+  if (e.key === 'ArrowRight') show(G.i + 1);
+});
+
+/* ------------------------------------------------------------------
+   Going to a country
+------------------------------------------------------------------- */
+const shelf = $('#shelf');
+const SHELF_MAX = 25;
+const shelfTiles = {};
+let shelfOrder = [];
+function makeTile(iso) {
+  const b = document.createElement('button');
+  b.className = 'tile'; b.dataset.iso = iso; b.setAttribute('aria-label', state.countries[iso].name);
+  b.innerHTML = flagImg(iso, 160, '', '');
+  b.addEventListener('click', () => selectCountry(iso));
+  return b;
+}
+function renderShelf(animate) {
+  const before = {};
+  Object.keys(shelfTiles).forEach(k => { before[k] = shelfTiles[k].offsetLeft; });
+  Object.keys(shelfTiles).forEach(k => { if (!shelfOrder.includes(k)) { shelfTiles[k].remove(); delete shelfTiles[k]; } });
+  shelfOrder.forEach(iso => {
+    let t = shelfTiles[iso];
+    if (!t) { t = shelfTiles[iso] = makeTile(iso); if (animate) t.classList.add('fresh'); }
+    shelf.appendChild(t);                                  // appending in order re-sorts the row
+  });
+  if (!animate) return;
+  shelfOrder.forEach(iso => {                              // glide each flag from its old place to its new one
+    const t = shelfTiles[iso];
+    if (before[iso] === undefined) return;
+    const dx = before[iso] - t.offsetLeft;
+    if (!dx) return;
+    t.style.transition = 'none'; t.style.translate = dx + 'px 0';
+    void t.offsetWidth;
+    t.style.transition = ''; t.style.translate = '0 0';
+  });
+}
+function promoteFlag(iso) {                                // most recent country goes first, no duplicates, at most 25
+  shelfOrder = [iso].concat(shelfOrder.filter(i => i !== iso)).slice(0, SHELF_MAX);
+  renderShelf(true);
+  markShelf(iso, true);
+}
+function buildShelf() {
+  shelf.innerHTML = '';
+  shelfOrder = FAVOURITES.filter(i => state.countries[i]);
+  renderShelf(false);
+  $('#shelfL').addEventListener('click', () => shelf.scrollBy({ left: -320, behavior: 'smooth' }));
+  $('#shelfR').addEventListener('click', () => shelf.scrollBy({ left: 320, behavior: 'smooth' }));
+  shelf.addEventListener('wheel', e => {                  // mouse wheel scrolls the row sideways
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); shelf.scrollLeft += e.deltaY; }
+  }, { passive: false });
+}
+function markShelf(iso, scroll) {
+  document.querySelectorAll('.tile').forEach(t => t.classList.toggle('on', t.dataset.iso === iso));
+  if (scroll) shelf.scrollTo({ left: 0, behavior: 'smooth' });
+}
+
+async function selectCountry(iso, opts) {
+  const c = state.countries[iso];
+  if (!c) return;
+  closeList(); hideChoices(); clearTapHi();
+  state.pending = iso;
+  input.value = c.name; input.blur();
+  markShelf(iso);
+  if (!(opts && opts.silent)) say(c.name);                // the name is spoken as soon as it is chosen
+  const token = ++state.sel;
+  const imgsP = fetchImages(c);                           // pictures load while the unicorn flies
+  const arrived = await fly(c.target, token);
+  if (!arrived || token !== state.sel) return;
+  state.current = iso; state.cur = c;
+  highlight(c);
+  burst();
+  promoteFlag(iso);
+  renderInfo(c);
+  galleryMessage('Finding pictures… ✨');
+  const imgs = await imgsP;
+  if (token === state.sel) setGallery(imgs);
+}
+
+let bag = [];
+function lucky() {
+  const avail = FAVOURITES.filter(i => state.countries[i]);
+  if (!avail.length) return;
+  if (!bag.length) bag = shuffle(avail.filter(i => i !== state.current));
+  selectCountry(bag.pop());
+}
+{                                                          // tap the wheel: it spins, then picks a country
+  const btn = $('#lucky'), wheel = $('#wheel'); let angle = 0, spinning = false;
+  btn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true; btn.classList.add('spinning');
+    angle += 720 + Math.random() * 360; wheel.style.transform = 'rotate(' + angle + 'deg)';
+    setTimeout(() => { spinning = false; btn.classList.remove('spinning'); lucky(); }, 1000);
+  });
+}
+
+/* ------------------------------------------------------------------
+   Typed search - only accepts country names, with flags
+------------------------------------------------------------------- */
+const input = $('#q'), listEl = $('#list');
+let options = [], activeIdx = -1, entries = [];
+
+function buildEntries() {
+  entries = Object.values(state.countries).map(c => ({
+    iso: c.iso, name: c.name,
+    keys: [norm(c.name)].concat((ALIASES[c.iso] || []).map(norm))
+  })).sort((a, b) => a.name.localeCompare(b.name));
+}
+function matches(q) {
+  q = norm(q.trim());
+  if (!q) return entries;
+  const starts = [], inc = [];
+  entries.forEach(e => {
+    if (e.keys.some(k => k.startsWith(q)) || e.keys.some(k => k.split(/[\s-]+/).some(w => w.startsWith(q)))) {
+      (e.keys[0].startsWith(q) ? starts : inc).push(e);
+    } else if (e.keys.some(k => k.includes(q))) inc.push(e);
+  });
+  return starts.concat(inc);
+}
+function renderList(opts) {
+  options = opts || matches(input.value);
+  listEl.innerHTML = '';
+  if (!options.length) { listEl.innerHTML = '<div class="none">No matching country</div>'; activeIdx = -1; }
+  else {
+    options.forEach(e => {
+      const d = document.createElement('div');
+      d.className = 'opt'; d.setAttribute('role', 'option');
+      d.innerHTML = flagImg(e.iso, 40, 'oflag', '') + '<span>' + esc(e.name) + '</span>';
+      d.addEventListener('mousedown', ev => { ev.preventDefault(); selectCountry(e.iso); });
+      listEl.appendChild(d);
+    });
+    setActive(0);
+  }
+  listEl.classList.add('open'); input.setAttribute('aria-expanded', 'true');
+}
+function setActive(i) {
+  activeIdx = i;
+  const els = listEl.querySelectorAll('.opt');
+  els.forEach((el, k) => el.classList.toggle('active', k === i));
+  if (els[i]) els[i].scrollIntoView({ block: 'nearest' });
+}
+function closeList() { listEl.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); }
+function restoreInput() { input.value = state.cur ? state.cur.name : ''; }
+input.addEventListener('focus', () => { input.select(); renderList(); });
+input.addEventListener('input', () => renderList());
+input.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (!listEl.classList.contains('open')) renderList(); else if (options.length) setActive((activeIdx + 1) % options.length); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (options.length) setActive((activeIdx - 1 + options.length) % options.length); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (options[activeIdx]) selectCountry(options[activeIdx].iso); }
+  else if (e.key === 'Escape') { closeList(); restoreInput(); input.blur(); }
+});
+input.addEventListener('blur', () => {
+  closeList();
+  const typed = norm(input.value.trim());
+  const exact = entries.find(e => norm(e.name) === typed);
+  if (exact && exact.iso !== state.current && exact.iso !== state.pending) selectCountry(exact.iso);
+  else if (!exact) restoreInput();
+});
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('.search') && listEl.classList.contains('open')) { closeList(); restoreInput(); }
+});
+
+/* ------------------------------------------------------------------
+   Voice: say a country
+------------------------------------------------------------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = $('#mic'), listenBubble = $('#listen');
+let rec = null, listening = false, voiceDone = false;
+
+function lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function cleanSpoken(s) {
+  return norm(s).replace(/[^a-z0-9' -]/g, ' ')
+    .replace(/^\s*(please\s+)?(go to|take me to|fly to|show me|show|search for|search|find|open|visit|i want to go to|i want to see)\s+/, '')
+    .replace(/^the\s+/, '').replace(/\s+/g, ' ').trim();
+}
+function rankByVoice(alts) {
+  const spoken = [];
+  alts.forEach(a => { const c = cleanSpoken(a); if (c) { spoken.push(c); if (c.includes(' ')) spoken.push(c.replace(/ /g, '')); } });
+  return entries.map(e => {
+    let best = 1;
+    spoken.forEach(t => e.keys.forEach(k => {
+      const kk = k.replace(/^the\s+/, '');
+      const d = t === kk ? 0 : lev(t, kk) / Math.max(t.length, kk.length);
+      if (d < best) best = d;
+    }));
+    return { e, score: best };
+  }).sort((x, y) => x.score - y.score);
+}
+function showChoices(list) {
+  const row = $('#choiceRow'); row.innerHTML = '';
+  list.forEach(e => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.innerHTML = flagImg(e.iso, 320, '', e.name) + '<span>' + esc(e.name) + '</span>';
+    b.addEventListener('click', () => selectCountry(e.iso));
+    row.appendChild(b);
+  });
+  $('#choices').hidden = false;
+  const names = list.map(e => e.name);
+  const phrase = names.length === 1 ? names[0] : names.slice(0, -1).join(', ') + ', or ' + names[names.length - 1];
+  say('Did you say ' + phrase + '?');
+}
+function hideChoices() { $('#choices').hidden = true; }
+$('#choicesX').addEventListener('click', hideChoices);
+$('#choices').addEventListener('click', e => { if (e.target.id === 'choices') hideChoices(); });
+
+function handleVoice(alts) {
+  voiceDone = true;
+  const ranked = rankByVoice(alts), top = ranked[0], second = ranked[1];
+  if (top && (top.score === 0 || (top.score <= 0.18 && second.score - top.score >= 0.12))) { selectCountry(top.e.iso); return; }
+  const cands = ranked.filter(r => r.score <= 0.5).slice(0, 3).map(r => r.e);
+  if (cands.length) showChoices(cands);
+  else {
+    mic.classList.add('shake'); setTimeout(() => mic.classList.remove('shake'), 500);
+    say('Hmm, I did not catch that. Tap the microphone and try again!');
+  }
+}
+function startVoice(lang) {
+  if (listening && rec) { rec.stop(); return; }
+  if (synth) synth.cancel();
+  hideChoices();
+  rec = new SR();
+  rec.lang = typeof lang === 'string' ? lang : 'en-SG';
+  rec.interimResults = false; rec.continuous = false; rec.maxAlternatives = 5;
+  voiceDone = false;
+  let retry = false;
+  rec.onstart = () => { listening = true; mic.classList.add('on'); listenBubble.hidden = false; };
+  rec.onresult = e => {
+    const res = e.results[e.results.length - 1], alts = [];
+    for (let i = 0; i < res.length; i++) alts.push(res[i].transcript);
+    handleVoice(alts);
+  };
+  rec.onerror = e => {
+    voiceDone = true;
+    if (e.error === 'language-not-supported') { retry = true; return; }
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      say('I cannot hear you. The microphone is turned off.');
+      toast('Microphone is off. Allow microphone access for this page in the browser settings (the page must be opened over https).', 9000);
+    } else if (e.error === 'no-speech') say('I did not hear anything. Tap the microphone and try again!');
+    else if (e.error === 'audio-capture') toast('No microphone was found.', 6000);
+    else if (e.error !== 'aborted') say('Oops, that did not work. Try again!');
+  };
+  rec.onend = () => {
+    listening = false; mic.classList.remove('on'); listenBubble.hidden = true;
+    if (retry) startVoice('en-US');
+  };
+  try { rec.start(); } catch (err) { /* already listening */ }
+}
+if (SR) { mic.hidden = false; mic.addEventListener('click', () => startVoice()); }
+
+/* ------------------------------------------------------------------
+   Tap the globe: first tap says the name, a second tap flies there
+------------------------------------------------------------------- */
+// Rough shapes of named seas (lon, lat). Entries with no name give the generic answer.
+const SEA_ZONES = [
+  [null, [[-6.4,52],[-6.2,54.6],[-4.5,55],[-3,54],[-3.2,53],[-4.6,52]]],
+  [null, [[-5.5,49.5],[-3,50.4],[1.2,51],[1.8,50.4],[-1,49],[-4.5,48.5]]],
+  [null, [[-115,31],[-113,31],[-109,26],[-106,23],[-108,22.5],[-112,25],[-115,29]]],
+  [null, [[-70,48],[-64,50],[-59,51],[-57,49],[-61,46.5],[-65,46.5]]],
+  [null, [[136,-17],[142,-17.5],[141.5,-12],[136,-12.5]]],
+  [null, [[144,-38.5],[148.5,-38],[148.5,-39.8],[144.5,-40]]],
+  [null, [[103.2,0.4],[105.4,0.4],[105.4,2.3],[103.2,2.3]]],
+  [null, [[34.6,45.2],[39.4,45.2],[39.4,47.4],[34.6,47.4]]],
+  [null, [[27,40],[29.5,40],[29.5,41.2],[27,41.2]]],
+  ['Adriatic Sea', [[12.2,45.7],[13.7,45.6],[19,42],[19.5,41],[18.5,40.2],[16,41.5],[13,43.7]]],
+  ['Aegean Sea', [[22.5,40],[24,40.8],[26,40],[27.2,38],[26.5,36],[24,35.2],[22.5,36.6],[23.5,38]]],
+  ['Mediterranean Sea', [[-5.7,35.8],[-5.7,36.2],[0,38.5],[4,42.3],[9,44],[13.5,45.8],[19.5,41.5],[24,40],[26.5,40.5],[27,36.5],[36.2,36.2],[36,33],[34,31],[29,30.9],[20,30.2],[11,33],[10.5,37.5],[2,36.8]]],
+  ['Black Sea', [[27.5,41.2],[28,46],[31,46.6],[33,46],[36,45.5],[38,47],[41.8,42],[41.5,41],[36,41.5],[31,41.2]]],
+  ['Caspian Sea', [[47,45],[47,40],[49,37],[54,37],[54,41],[51.5,45],[50,46.5]]],
+  ['Red Sea', [[32.5,29.5],[34.5,28],[39,23],[43,15.5],[43.5,12.7],[41,13.5],[37,18.5],[35,24],[33.5,27.5]]],
+  ['Gulf of Aden', [[43.5,12.5],[45,10.5],[51,11.8],[51,14.5],[44,13.5]]],
+  ['Persian Gulf', [[48,30],[50,30],[56.5,26.5],[56.2,24.5],[51.5,24],[50,26],[48,28.5]]],
+  ['Arabian Sea', [[58,25],[66,25],[73,21],[73,8],[60,8],[51,12],[56,20]]],
+  ['Andaman Sea', [[93,13],[93,6],[98.5,6],[98.5,12],[97.5,16],[95,16]]],
+  ['Bay of Bengal', [[80.2,15],[80,9],[85,5.5],[93,6],[94,15],[92,21.5],[88,21.5],[85,19.5]]],
+  ['Gulf of Thailand', [[99.8,9],[100,12.5],[101.5,12.8],[102.8,11.5],[104.5,10],[103,8.2],[101,6.5],[100,7.5]]],
+  ['Strait of Malacca', [[95.2,6.4],[97.5,5.8],[100,6.6],[100.8,4.5],[103.2,2.4],[104.2,1.3],[103.3,1.0],[101.2,2.2],[99,3.4],[97,4.2],[95.4,5.4]]],
+  ['South China Sea', [[104,1],[104,9],[108,12],[109,17],[111,20],[118,24],[121,23],[121,18],[119.5,15],[116,9],[119,6],[115,3],[110,1.5]]],
+  ['Yellow Sea', [[119,33],[121,37],[122,39],[125,39],[126,35],[124,32]]],
+  ['East China Sea', [[121,24.5],[125,31],[129,33],[128,27],[124,25.5],[122,24.5]]],
+  ['Sea of Japan', [[128,36],[129,41],[133,43],[137,45],[141,46],[140,41],[137,37],[133,35]]],
+  ['Philippine Sea', [[122,20],[125,26],[134,34],[140,34],[145,30],[150,20],[142,10],[130,5],[125,10],[122,15]]],
+  ['Celebes Sea', [[118.5,6],[126,8.5],[126.5,2],[119.5,0.5]]],
+  ['Java Sea', [[105.5,-3],[116.5,-3],[116.5,-6],[105.5,-6]]],
+  ['Timor Sea', [[122,-8.5],[131,-8.5],[131,-13],[122,-13]]],
+  ['Arafura Sea', [[131,-8],[140,-8],[140,-11.5],[131,-11.5]]],
+  ['Coral Sea', [[142,-10],[160,-10],[165,-20],[155,-25],[150,-23],[146,-17],[144,-12]]],
+  ['Tasman Sea', [[150,-32],[160,-28],[173,-34],[173,-42],[165,-47],[148,-44],[150,-38]]],
+  ['Sea of Okhotsk', [[137,54],[141,59.5],[150,59.5],[160,61],[156,56],[155.5,51],[147,46],[143,46],[142.5,54]]],
+  ['Bering Sea', [[165,53],[180,53],[180,66],[170,66],[165,60]]],
+  ['Bering Sea', [[-180,52],[-180,66],[-165,66],[-162,60],[-165,54.5]]],
+  ['Gulf of Mexico', [[-97.5,18.5],[-97.5,26],[-94,29.5],[-89,30.2],[-84,30],[-82.5,27],[-81,25],[-83,23],[-87,21.5],[-90,21],[-91,19],[-94,18.2]]],
+  ['Caribbean Sea', [[-88,16],[-83,10],[-77,8.5],[-72,11.5],[-65,10.5],[-61,12],[-62,17],[-66,18.5],[-72,19.5],[-77,19.5],[-83,22],[-86,21.5],[-87.5,18]]],
+  ['Hudson Bay', [[-95,60],[-94,57],[-92,52],[-80,51],[-79,55],[-77,62],[-82,64],[-90,64],[-94,62]]],
+  ['Baffin Bay', [[-78,73],[-66,67],[-57,67],[-55,73],[-62,78],[-73,78]]],
+  ['North Sea', [[-3,51.5],[-3,58],[0,62],[5,62],[9,58],[8.5,54],[4,51.3]]],
+  ['Baltic Sea', [[10,54],[13,56],[18,59.5],[19,62],[22,64],[25.5,65.5],[25,60],[30,60],[27,57],[21,55],[14,54]]],
+  ['Norwegian Sea', [[-10,64],[-3,62],[4,62.5],[12,66],[19,70.5],[16,72],[0,73],[-10,70]]],
+  ['Barents Sea', [[19,70.5],[33,69.5],[45,68],[55,71],[55,77],[40,80],[20,78],[16,75]]],
+  ['Greenland Sea', [[-20,70],[-5,70],[10,77],[10,80],[-15,82],[-20,76]]]
+];
+function inRingPts(lon, lat, r) {
+  let inside = false;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const xi = r[i][0], yi = r[i][1], xj = r[j][0], yj = r[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+// Very rough ocean borders: good enough for a child, not for a navigator
+function oceanOf(lon, lat) {
+  const inBox = (a, b, c, d) => lon >= a && lon <= b && lat >= c && lat <= d;
+  if (inBox(-6, 60, 28, 48)) return null;       // Mediterranean / Black / Caspian region
+  if (inBox(-6, 32, 48, 67)) return null;       // channels, North and Baltic fringes
+  if (inBox(32, 60, 12, 30)) return null;       // gulfs around Arabia
+  if (inBox(99, 123.5, 0, 42)) return null;     // seas of south-east and east Asia
+  if (inBox(99, 135, -9, 0)) return null;       // Indonesian seas
+  if (lat <= -60) return 'Southern Ocean';
+  if (lat >= 70) return 'Arctic Ocean';
+  if (lat > 8) {
+    if (lon <= -80) return 'Pacific Ocean';
+    if (lon < 20) return 'Atlantic Ocean';
+    if (lon < 100) return 'Indian Ocean';
+    return 'Pacific Ocean';
+  }
+  if (lon <= -68) return 'Pacific Ocean';
+  if (lon < 20) return 'Atlantic Ocean';
+  if (lat > -11) return lon < 115 ? 'Indian Ocean' : 'Pacific Ocean';
+  return lon < 147 ? 'Indian Ocean' : 'Pacific Ocean';
+}
+function waterAt(lon, lat) {
+  for (const z of SEA_ZONES) if (inRingPts(lon, lat, z[1])) return z[0];     // null = generic answer
+  return oceanOf(lon, lat);
+}
+
+function pointInFeat(f, lon, lat) {
+  for (let i = 0; i < f.infos.length; i++) {
+    const inf = f.infos[i];
+    if (lon < inf.minLon || lon > inf.maxLon || lat < inf.minLat || lat > inf.maxLat) continue;
+    const b = f.bounds[i], rings = Array.isArray(b[0]) ? b : [b];
+    let inside = false;
+    for (const r of rings) {
+      for (let a = 0, z = r.length - 1; a < r.length; z = a++) {
+        const xi = r[a].longitude, yi = r[a].latitude, xj = r[z].longitude, yj = r[z].latitude;
+        if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+      }
+    }
+    if (inside) return true;
+  }
+  return false;
+}
+function hitTest(lon, lat) {
+  for (const f of state.feats) {
+    if (!pointInFeat(f, lon, lat)) continue;
+    if (f.iso) return { kind: 'country', iso: f.iso };
+    return { kind: 'place', name: f.P.NAME_LONG || f.P.NAME || f.P.ADMIN };
+  }
+  if (lat <= -68) return { kind: 'place', name: 'Antarctica' };
+  return { kind: 'water', name: waterAt(lon, lat) };
+}
+
+const TAP_MS = 8000;
+const mapTap = { key: null, timer: null };
+let TAPATTR = null;
+function clearTapHi() {
+  clearTimeout(mapTap.timer); mapTap.key = null;
+  if (state.tap) { state.tap.removeAllRenderables(); state.wwd.redraw(); }
+}
+function armCountry(c) {
+  clearTapHi();
+  if (!TAPATTR) {
+    TAPATTR = new WW.ShapeAttributes(null);
+    TAPATTR.drawInterior = false; TAPATTR.drawOutline = true;
+    TAPATTR.outlineColor = col('#ffd23f'); TAPATTR.outlineWidth = 4.5;
+  }
+  c.feats.forEach(f => f.bounds.forEach(b => {
+    const s = new WW.SurfacePolygon(b, TAPATTR); s.pathType = WW.LINEAR; state.tap.addRenderable(s);
+  }));
+  state.wwd.redraw();
+  mapTap.key = c.iso; mapTap.timer = setTimeout(clearTapHi, TAP_MS);
+}
+function onMapTap(clientX, clientY) {
+  const wwd = state.wwd;
+  const pl = wwd.pickTerrain(wwd.canvasCoordinates(clientX, clientY));
+  const t = pl && pl.terrainObject && pl.terrainObject();
+  if (!t) return;                                          // tapped empty space
+  const hit = hitTest(t.position.longitude, t.position.latitude);
+  if (hit.kind === 'country') {
+    const c = state.countries[hit.iso];
+    if (mapTap.key === hit.iso) { selectCountry(hit.iso, { silent: true }); return; }   // second tap: fly
+    if (state.current === hit.iso) { clearTapHi(); say(c.name); return; }               // already here
+    armCountry(c); say(c.name);                                                         // first tap: say the name
+  } else if (hit.kind === 'place') {
+    clearTapHi(); say(hit.name);
+  } else {
+    clearTapHi(); say(hit.name || "That's the ocean!");
+  }
+}
+function wireNorth() {
+  const b = $('#north'); if (!b) return;
+  const needle = $('#needle'); let last = null;
+  (function spin() {                                       // the needle always points to north
+    const h = state.wwd && state.wwd.navigator ? state.wwd.navigator.heading : 0;
+    if (h !== last) { last = h; needle.style.transform = 'rotate(' + (-h) + 'deg)'; }
+    requestAnimationFrame(spin);
+  })();
+  b.addEventListener('pointerdown', e => e.stopPropagation());
+  b.addEventListener('click', () => {
+    const nav = state.wwd.navigator, h0 = ((nav.heading + 540) % 360) - 180, t0 = nav.tilt, t = Date.now();
+    (function step() {
+      const k = Math.min(1, (Date.now() - t) / 450), e = 1 - Math.pow(1 - k, 3);
+      nav.heading = h0 * (1 - e); nav.tilt = t0 * (1 - e);
+      state.wwd.redraw();
+      if (k < 1) requestAnimationFrame(step);
+    })();
+  });
+}
+function wireMapTaps() {
+  const cv = $('#globe'), pts = new Set();
+  let down = null;
+  cv.addEventListener('pointerdown', e => {
+    pts.add(e.pointerId);
+    down = pts.size === 1 ? { x: e.clientX, y: e.clientY, t: Date.now() } : null;
+  });
+  cv.addEventListener('pointerup', e => {
+    const d = down; pts.delete(e.pointerId); down = null;
+    if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8 && Date.now() - d.t < 450) onMapTap(e.clientX, e.clientY);
+  });
+  cv.addEventListener('pointercancel', e => { pts.delete(e.pointerId); down = null; });
+}
+
+/* ------------------------------------------------------------------
+   Start
+------------------------------------------------------------------- */
+(async function init() {
+  const loadingText = $('#loadingText');
+  try {
+    state.wb = wbFetch('AG.LND.TOTL.K2').then(a => ({ area: a }));
+    const [, geo] = await Promise.all([loadScript(WW_URLS), fetchGeo()]);
+    WW = window.WorldWind;
+    setupGlobe(geo);
+    buildEntries();
+    {                                                      // exactly 25 valid, different favourites; random ones fill any gaps
+      const ok = FAVOURITES.filter((i, k, a) => state.countries[i] && a.indexOf(i) === k).slice(0, 25);
+      const pool = shuffle(Object.keys(state.countries).filter(i => !ok.includes(i)));
+      while (ok.length < 25 && pool.length) ok.push(pool.pop());
+      FAVOURITES = ok;
+    }
+    buildShelf();
+    wireMapTaps();
+    wireNorth();
+    $('#loading').classList.add('hide');
+  } catch (err) {
+    console.error(err);
+    $('.spinner').style.display = 'none';
+    loadingText.textContent = 'Sorry, the globe could not be loaded (' + err.message + '). Please check the internet connection and reload.';
+  }
+})();
+})();
+
+</script>
+</body>
+</html>
